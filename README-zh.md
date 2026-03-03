@@ -1,18 +1,32 @@
 # lvdaxianerplus-skills
 
-一个为 OpenCode (Claude Code) 打造的技能集合，用于提升代码质量和开发工作流。
+[English Version](./README.md)
+
+一个为 OpenCode 打造的技能集合，用于提升代码质量和开发工作流。
 
 ## 关于
 
-本仓库包含为 **Claude Code (OpenCode)** 设计的自定义技能——一个帮助开发者完成软件工程任务的 AI CLI 工具。
+本仓库包含为 **OpenCode** 设计的自定义技能——一个帮助开发者完成软件工程任务的开源 AI CLI 工具。
+
+### OpenCode 与 Claude Code 的区别
+
+**OpenCode** 和 **Claude Code** 是两个不同的 CLI 工具：
+
+| 工具 | 开发者 | 描述 |
+|------|--------|------|
+| **OpenCode** | [Anomaly](https://anomaly.co) | 开源 AI 编程代理，支持多种模型（Claude、GPT、Gemini 等） |
+| **Claude Code** | [Anthropic](https://anthropic.com) | Claude AI 助手的官方 CLI 工具 |
+
+本项目支持 **OpenCode**。关于 Claude Code 的技能，请查阅 [官方文档](https://docs.anthropic.com/en/docs/claude-code/overview)。
 
 ### 什么是 OpenCode？
 
-**OpenCode**（前身为 Claude Code）是一款集成到开发工作流中的 AI 助手，它可以：
+**OpenCode** 是一款集成到开发工作流中的开源 AI 助手，它可以：
 - 编写和编辑代码
 - 执行命令
 - 搜索和浏览代码库
 - 执行复杂的多步骤任务
+- 支持多种 LLM 提供商（Claude、GPT、Gemini 等）
 
 访问 [opencode.ai](https://opencode.ai) 了解更多。
 
@@ -38,17 +52,17 @@
 
 ```bash
 # 克隆本仓库
-git clone https://github.com/your-username/lvdaxianerplus-skills.git
+git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
 
 # 将技能复制到 OpenCode 的 skills 目录
 cp -r formatting-code ~/.config/opencode/skills/
 
-# 重启 OpenCode/Claude Code 以加载新技能
+# 重启 OpenCode 以加载新技能
 ```
 
 **使用方法：**
 
-在 Claude 生成代码后，使用此技能可以：
+在 AI 生成代码后，使用此技能可以：
 1. 清理未使用的 import
 2. 整理 import 语句
 3. 移除死代码
@@ -92,12 +106,12 @@ ln -s /path/to/your-skill ~/.config/opencode/skills/your-skill
 
 ```bash
 cd ~/.config/opencode/skills/
-git clone https://github.com/your-username/lvdaxianerplus-skills.git
+git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
 ```
 
 ## 环境要求
 
-- **OpenCode / Claude Code** - 从 [opencode.ai](https://opencode.ai) 安装
+- **OpenCode** - 从 [opencode.ai](https://opencode.ai) 安装
 - **支持的语言：** Java、JavaScript、TypeScript、Python、Go
 - **可选工具：**
   - ESLint（用于 JavaScript/TypeScript）
@@ -118,4 +132,4 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-**使用 Claude Code (OpenCode) 构建** 🤖
+**使用 OpenCode 构建** 🤖

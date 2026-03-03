@@ -1,18 +1,32 @@
 # lvdaxianerplus-skills
 
-A collection of OpenCode skills for Claude to enhance code quality and development workflow.
+[中文版本](./README-zh.md)
+
+A collection of skills for OpenCode to enhance code quality and development workflow.
 
 ## About
 
-This repository contains custom skills designed for **Claude Code (OpenCode)** - an AI-powered CLI tool that helps developers with software engineering tasks.
+This repository contains custom skills designed for **OpenCode** - an open-source AI-powered CLI tool that helps developers with software engineering tasks.
+
+### OpenCode vs Claude Code
+
+**OpenCode** and **Claude Code** are two different CLI tools:
+
+| Tool | Developer | Description |
+|------|-----------|-------------|
+| **OpenCode** | [Anomaly](https://anomaly.co) | Open source AI coding agent, supports multiple models (Claude, GPT, Gemini, etc.) |
+| **Claude Code** | [Anthropic](https://anthropic.com) | Official CLI for Claude AI assistant |
+
+This project supports **OpenCode**. For Claude Code skills, please check the [official documentation](https://docs.anthropic.com/en/docs/claude-code/overview).
 
 ### What is OpenCode?
 
-**OpenCode** (formerly Claude Code) is an AI assistant that integrates with your development workflow. It can:
+**OpenCode** is an open source AI assistant that integrates with your development workflow. It can:
 - Write and edit code
 - Execute commands
 - Search and navigate codebases
 - Execute complex multi-step tasks
+- Support multiple LLM providers (Claude, GPT, Gemini, etc.)
 
 Visit [opencode.ai](https://opencode.ai) to learn more.
 
@@ -38,17 +52,17 @@ Automatically formats and cleans up code after AI generates it.
 
 ```bash
 # Clone this repository
-git clone https://github.com/your-username/lvdaxianerplus-skills.git
+git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
 
 # Copy the skill to OpenCode's skills directory
 cp -r formatting-code ~/.config/opencode/skills/
 
-# Restart OpenCode/Claude Code to load the new skill
+# Restart OpenCode to load the new skill
 ```
 
 **Usage:**
 
-After Claude generates code, use this skill to:
+After AI generates code, use this skill to:
 1. Clean up unused imports
 2. Organize import statements
 3. Remove dead code
@@ -92,12 +106,12 @@ ln -s /path/to/your-skill ~/.config/opencode/skills/your-skill
 
 ```bash
 cd ~/.config/opencode/skills/
-git clone https://github.com/your-username/lvdaxianerplus-skills.git
+git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
 ```
 
 ## Requirements
 
-- **OpenCode / Claude Code** - Install from [opencode.ai](https://opencode.ai)
+- **OpenCode** - Install from [opencode.ai](https://opencode.ai)
 - **Supported Languages:** Java, JavaScript, TypeScript, Python, Go
 - **Optional Tools:**
   - ESLint (for JavaScript/TypeScript)
@@ -118,4 +132,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with Claude Code (OpenCode)** 🤖
+**Built with OpenCode** 🤖
