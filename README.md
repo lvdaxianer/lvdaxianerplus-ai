@@ -1,38 +1,59 @@
-# lvdaxianerplus-skills
+# lvdaxianerplus-ai
 
 [中文版本](./README-zh.md)
 
-A collection of skills for OpenCode to enhance code quality and development workflow.
+A collection of commands and skills for AI scaffolding to enhance code quality and development workflow.
 
 ## About
 
-This repository contains custom skills designed for **OpenCode** - an open-source AI-powered CLI tool that helps developers with software engineering tasks.
+This repository contains custom commands and skills designed for **AI scaffolding** - an open-source AI-powered CLI tool that helps developers with software engineering tasks.
 
-### OpenCode vs Claude Code
+### What is AI Scaffolding?
 
-**OpenCode** and **Claude Code** are two different CLI tools:
-
-| Tool | Developer | Description |
-|------|-----------|-------------|
-| **OpenCode** | [Anomaly](https://anomaly.co) | Open source AI coding agent, supports multiple models (Claude, GPT, Gemini, etc.) |
-| **Claude Code** | [Anthropic](https://anthropic.com) | Official CLI for Claude AI assistant |
-
-This project supports **OpenCode**. For Claude Code skills, please check the [official documentation](https://docs.anthropic.com/en/docs/claude-code/overview).
-
-### What is OpenCode?
-
-**OpenCode** is an open source AI assistant that integrates with your development workflow. It can:
+**AI scaffolding** is an open source AI assistant that integrates with your development workflow. It can:
 - Write and edit code
 - Execute commands
 - Search and navigate codebases
 - Execute complex multi-step tasks
-- Support multiple LLM providers (Claude, GPT, Gemini, etc.)
 
-Visit [opencode.ai](https://opencode.ai) to learn more.
+Visit to learn more.
 
-## Skills Included
+## Commands and Skills Included
 
-### 1. Code Formatting After AI Generation
+### 1. Git Merge Command
+
+Selective commit merging tool with two modes:
+- **Quick Mode**: Fast execution via parameters (e.g., `-t=main -c=2`)
+- **Interactive Mode**: Dropdown selection for flexible configuration
+
+**Features:**
+- Cherry-pick or Rebase merge modes
+- Quick mode: specify target branch and commit count directly
+- Interactive mode: dropdown selection for source/target/commits
+- Conflict resolution guidance
+
+**Usage:**
+
+```bash
+# Quick mode (recommended)
+/git-merge -t=main -c=2              # Cherry-pick last 2 commits to main
+/git-merge -t=main -c=2 -m=rebase   # Use rebase mode
+/git-merge -s=feature-A -t=main -c=1 # Specify source branch
+
+# Interactive mode
+/git-merge                    # Full interactive selection
+/git-merge -t=main           # Specify target, select source interactively
+```
+
+**Arguments:**
+| Argument | Short | Description | Required |
+|----------|-------|-------------|----------|
+| `--target` | `-t` | Target branch | Yes* |
+| `--source` | `-s` | Source branch | No (default: current) |
+| `--count` | `-c` | Number of commits | No (quick mode) |
+| `--mode` | `-m` | Merge mode: `pick`/`rebase` | No (default: pick) |
+
+### 2. Code Formatting After AI Generation
 
 Automatically formats and cleans up code after AI generates it.
 
@@ -48,70 +69,67 @@ Automatically formats and cleans up code after AI generates it.
 - Python
 - Go
 
-**Installation:**
-
-```bash
-# Clone this repository
-git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
-
-# Copy the skill to OpenCode's skills directory
-cp -r formatting-code ~/.config/opencode/skills/
-
-# Restart OpenCode to load the new skill
-```
-
 **Usage:**
 
-After AI generates code, use this skill to:
-1. Clean up unused imports
-2. Organize import statements
-3. Remove dead code
-4. Add documentation comments
-
-The skill will automatically trigger when needed or can be invoked manually:
-```
+```bash
 Use the code-formatting-after-ai-generation skill
 ```
 
-## Directory Structure
+## How to Install
+
+### Install Commands
+
+Commands are stored in the `commands/` directory. To use a command:
+
+1. Copy the command file to global commands directory:
+```bash
+cp -r commands/git-merge.md ~/.claude/commands/
+```
+
+2. Or copy to project-local commands directory:
+```bash
+cp -r commands/git-merge.md <your-project>/.claude/commands/
+```
+
+3. Use the command:
+```bash
+/git-merge -t=main -c=2
+```
+
+### Install Skills
+
+Skills are stored in the `skills/` directory. To use a skill:
+
+1. Copy the skill folder to global skills directory:
+```bash
+cp -r skills/formatting-code ~/.claude/skills/
+```
+
+2. Or copy to project-local skills directory:
+```bash
+cp -r skills/formatting-code <your-project>/.claude/skills/
+```
+
+2. Use the skill:
+```bash
+Use the code-formatting-after-ai-generation skill
+```
+
+### Directory Structure
 
 ```
-lvdaxianerplus-skills/
-├── formatting-code/
-│   └── SKILL.md          # Code formatting skill
+lvdaxianerplus-ai/
+├── commands/
+│   └── git-merge.md      # Git merge command
+├── skills/
+│   └── formatting-code/  # Code formatting skill
 ├── README.md             # English documentation
 ├── README-zh.md          # Chinese documentation
 └── LICENSE               # MIT License
 ```
 
-## How to Install Skills
-
-### Method 1: Copy to Skills Directory
-
-```bash
-# Find your OpenCode skills directory
-ls ~/.config/opencode/skills/
-
-# Copy skill folder
-cp -r /path/to/your-skill ~/.config/opencode/skills/
-```
-
-### Method 2: Symlink
-
-```bash
-ln -s /path/to/your-skill ~/.config/opencode/skills/your-skill
-```
-
-### Method 3: Clone to Skills Directory
-
-```bash
-cd ~/.config/opencode/skills/
-git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
-```
-
 ## Requirements
 
-- **OpenCode** - Install from [opencode.ai](https://opencode.ai)
 - **Supported Languages:** Java, JavaScript, TypeScript, Python, Go
 - **Optional Tools:**
   - ESLint (for JavaScript/TypeScript)
@@ -132,4 +150,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with OpenCode** 🤖
+**Built with AI Scaffolding** 🤖

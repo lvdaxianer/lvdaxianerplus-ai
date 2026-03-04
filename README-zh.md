@@ -1,38 +1,57 @@
-# lvdaxianerplus-skills
+# lvdaxianerplus-ai
 
 [English Version](./README.md)
 
-一个为 OpenCode 打造的技能集合，用于提升代码质量和开发工作流。
+一个为 AI 脚手架打造的命令和技能集合，用于提升代码质量和开发工作流。
 
 ## 关于
 
-本仓库包含为 **OpenCode** 设计的自定义技能——一个帮助开发者完成软件工程任务的开源 AI CLI 工具。
+本仓库包含为 **AI 脚手架** 设计的自定义命令和技能——一个帮助开发者完成软件工程任务的开源 AI CLI 工具。
 
-### OpenCode 与 Claude Code 的区别
+### 什么是 AI 脚手架？
 
-**OpenCode** 和 **Claude Code** 是两个不同的 CLI 工具：
-
-| 工具 | 开发者 | 描述 |
-|------|--------|------|
-| **OpenCode** | [Anomaly](https://anomaly.co) | 开源 AI 编程代理，支持多种模型（Claude、GPT、Gemini 等） |
-| **Claude Code** | [Anthropic](https://anthropic.com) | Claude AI 助手的官方 CLI 工具 |
-
-本项目支持 **OpenCode**。关于 Claude Code 的技能，请查阅 [官方文档](https://docs.anthropic.com/en/docs/claude-code/overview)。
-
-### 什么是 OpenCode？
-
-**OpenCode** 是一款集成到开发工作流中的开源 AI 助手，它可以：
+**AI 脚手架** 是一款集成到开发工作流中的开源 AI 助手，它可以：
 - 编写和编辑代码
 - 执行命令
 - 搜索和浏览代码库
 - 执行复杂的多步骤任务
-- 支持多种 LLM 提供商（Claude、GPT、Gemini 等）
 
-访问 [opencode.ai](https://opencode.ai) 了解更多。
+## 包含的命令和技能
 
-## 包含的技能
+### 1. Git 合并命令
 
-### 1. AI 代码生成后格式化
+选择性合并提交的工具，支持两种模式：
+- **快捷模式**：通过参数快速执行（如 `-t=main -c=2`）
+- **交互模式**：通过下拉列表选择，灵活配置
+
+**功能：**
+- 支持 Cherry-pick 或 Rebase 合并模式
+- 快捷模式：直接指定目标分支和提交数
+- 交互模式：下拉选择源/目标/提交
+- 冲突解决引导
+
+**使用方法：**
+
+```bash
+# 快捷模式（推荐）
+/git-merge -t=main -c=2              # 将前2个提交 cherry-pick 到 main
+/git-merge -t=main -c=2 -m=rebase   # 使用 rebase 模式
+/git-merge -s=feature-A -t=main -c=1 # 指定源分支
+
+# 交互模式
+/git-merge                    # 完全交互式选择
+/git-merge -t=main           # 指定目标，交互选择源
+```
+
+**参数：**
+| 参数 | 缩写 | 说明 | 必需 |
+|------|------|------|------|
+| `--target` | `-t` | 目标分支 | 是* |
+| `--source` | `-s` | 源分支 | 否（默认当前分支） |
+| `--count` | `-c` | 提交数 | 否（快捷模式） |
+| `--mode` | `-m` | 合并方式：`pick`/`rebase` | 否（默认 pick） |
+
+### 2. AI 代码生成后格式化
 
 在 AI 生成代码后自动格式化和清理代码。
 
@@ -48,70 +67,67 @@
 - Python
 - Go
 
-**安装方法：**
-
-```bash
-# 克隆本仓库
-git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
-
-# 将技能复制到 OpenCode 的 skills 目录
-cp -r formatting-code ~/.config/opencode/skills/
-
-# 重启 OpenCode 以加载新技能
-```
-
 **使用方法：**
 
-在 AI 生成代码后，使用此技能可以：
-1. 清理未使用的 import
-2. 整理 import 语句
-3. 移除死代码
-4. 添加文档注释
-
-该技能会在需要时自动触发，也可以手动调用：
+```bash
+使用 code-formatting-after-ai-generation 技能
 ```
+
+## 如何安装
+
+### 安装命令
+
+命令存放在 `commands/` 目录下。使用方法：
+
+1. 将命令文件复制到全局命令目录：
+```bash
+cp -r commands/git-merge.md ~/.claude/commands/
+```
+
+2. 或者复制到项目本地命令目录：
+```bash
+cp -r commands/git-merge.md <你的项目>/.claude/commands/
+```
+
+3. 使用命令：
+```bash
+/git-merge -t=main -c=2
+```
+
+### 安装技能
+
+技能存放在 `skills/` 目录下。使用方法：
+
+1. 将技能文件夹复制到全局技能目录：
+```bash
+cp -r skills/formatting-code ~/.claude/skills/
+```
+
+2. 或者复制到项目本地技能目录：
+```bash
+cp -r skills/formatting-code <你的项目>/.claude/skills/
+```
+
+3. 使用技能：
+```bash
 使用 code-formatting-after-ai-generation 技能
 ```
 
 ## 目录结构
 
 ```
-lvdaxianerplus-skills/
-├── formatting-code/
-│   └── SKILL.md          # 代码格式化技能
+lvdaxianerplus-ai/
+├── commands/
+│   └── git-merge.md      # Git 合并命令
+├── skills/
+│   └── formatting-code/  # 代码格式化技能
 ├── README.md             # 英文文档
 ├── README-zh.md          # 中文文档
 └── LICENSE               # MIT 许可证
 ```
 
-## 如何安装技能
-
-### 方法 1：复制到 Skills 目录
-
-```bash
-# 找到你的 OpenCode skills 目录
-ls ~/.config/opencode/skills/
-
-# 复制技能文件夹
-cp -r /path/to/your-skill ~/.config/opencode/skills/
-```
-
-### 方法 2：创建符号链接
-
-```bash
-ln -s /path/to/your-skill ~/.config/opencode/skills/your-skill
-```
-
-### 方法 3：克隆到 Skills 目录
-
-```bash
-cd ~/.config/opencode/skills/
-git clone https://github.com/lvdaxianer/lvdaxianerplus-skills.git
-```
-
 ## 环境要求
 
-- **OpenCode** - 从 [opencode.ai](https://opencode.ai) 安装
 - **支持的语言：** Java、JavaScript、TypeScript、Python、Go
 - **可选工具：**
   - ESLint（用于 JavaScript/TypeScript）
@@ -132,4 +148,4 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-**使用 OpenCode 构建** 🤖
+**使用 AI 脚手架构建** 🤖
