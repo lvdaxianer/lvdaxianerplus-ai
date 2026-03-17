@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- update README index files with guide links (0978c75)
+
+### Changed
+- add formatting-code skill guide files (2aa73ce)
+
+- add save-context command guide files (8373594)
+
+### Changed
+- add discuss command guide files (e93f505)
+
+- add git-merge command guide files (4f7823a)
+
+### Changed
+- add commit command guide files (2a5a444)
+
+- 新增 /commit 命令 (6c91712)
 
 ### Changed
 - 更新 README 文档，反映 save-context 重构 (4f69846)
