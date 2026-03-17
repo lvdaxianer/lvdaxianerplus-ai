@@ -4,215 +4,69 @@
 
 A collection of commands and skills for AI scaffolding to enhance code quality and development workflow.
 
-## About
+## Commands
 
-This repository contains custom commands and skills designed for **AI scaffolding** - an open-source AI-powered CLI tool that helps developers with software engineering tasks.
+| Command | Description | Documentation |
+|---------|-------------|---------------|
+| `/commit` | Create well-formatted commits with conventional commit messages | [Guide](./commands/commit-en.md) |
+| `/git-merge` | AI-assisted selective commit merging tool | [Guide](./commands/git-merge-en.md) |
+| `/discuss` | Interactive requirement gathering command | [Guide](./commands/discuss-en.md) |
+| `save-context` | Save key points to project context files | [Guide](./commands/save-context-en.md) |
 
-### What is AI Scaffolding?
+## Skills
 
-**AI scaffolding** is an open source AI assistant that integrates with your development workflow. It can:
-- Write and edit code
-- Execute commands
-- Search and navigate codebases
-- Execute complex multi-step tasks
+| Skill | Description | Documentation |
+|-------|-------------|---------------|
+| `code-formatting-after-ai-generation` | Format and clean up code after AI generates it | [English](./skills/formatting-code/SKILL.md) / [中文](./skills/formatting-code/SKILL-zh.md) |
 
-Visit to learn more.
-
-## Commands and Skills Included
-
-### 1. Git Merge Command
-
-Selective commit merging tool with two modes:
-- **Quick Mode**: Fast execution via parameters (e.g., `-t=main -c=2`)
-- **Interactive Mode**: Dropdown selection for flexible configuration
-
-**Features:**
-- Cherry-pick or Rebase merge modes
-- Quick mode: specify target branch and commit count directly
-- Interactive mode: dropdown selection for source/target/commits
-- Conflict resolution guidance
-
-**Usage:**
-
-```bash
-# Quick mode (recommended)
-/git-merge -t=main -c=2              # Cherry-pick last 2 commits to main
-/git-merge -t=main -c=2 -m=rebase   # Use rebase mode
-/git-merge -s=feature-A -t=main -c=1 # Specify source branch
-
-# Interactive mode
-/git-merge                    # Full interactive selection
-/git-merge -t=main           # Specify target, select source interactively
-```
-
-**Arguments:**
-| Argument | Short | Description | Required |
-|----------|-------|-------------|----------|
-| `--target` | `-t` | Target branch | Yes* |
-| `--source` | `-s` | Source branch | No (default: current) |
-| `--count` | `-c` | Number of commits | No (quick mode) |
-| `--mode` | `-m` | Merge mode: `pick`/`rebase` | No (default: pick) |
-
-### 2. Requirement Discussion Command
-
-Interactive requirement gathering command that collects key information through guided questions.
-
-**Features:**
-- 10 popular roles with 10 scenario questions each
-- Collects: role, use case, role-specific considerations, priority, acceptance criteria
-- Additional options: deadline, budget, third-party dependencies, other constraints
-- Saves to `.ai/requirements-[功能].md` (e.g., `.ai/requirements-login.md`)
-- Quick mode and interactive mode
-
-**Roles Supported:**
-1. Developer (程序员)
-2. Journalist (记者)
-3. Product Manager (产品经理)
-4. Designer (设计师)
-5. Operations (运营人员)
-6. Data Analyst (数据分析师)
-7. QA Engineer (测试工程师)
-8. Project Manager (项目经理)
-9. Marketing (营销人员)
-10. Customer Support (客服人员)
-
-**Usage:**
-
-```bash
-# Interactive mode (recommended)
-/discuss                    # Start interactive requirement discussion
-/discuss 用户登录接口      # Quick mode with requirement overview
-```
-
-**Quick Mode Example:**
-```bash
-/discuss 程序员场景：用户登录接口，高并发，注意事项：登录失败次数限制，优先级P0，验收标准：登录成功率99.9%
-```
-
-### 3. Code Formatting After AI Generation
-
-Automatically formats and cleans up code after AI generates it.
-
-**Features:**
-- Remove unused imports
-- Sort imports alphabetically
-- Remove unused private methods
-- Add missing Javadoc comments
-
-**Supported Languages:**
-- Java
-- JavaScript / TypeScript
-- Python
-- Go
-
-**Usage:**
-
-```bash
-Use the code-formatting-after-ai-generation skill
-```
-
-### 4. Save Key Points to Context
-
-Automatically saves key points to your project's `.ai/context.md` when you input "重点：" in the project.
-
-**Features:**
-- Supports general and modular key points
-- AI understands and refines the content before saving, requires user confirmation
-- Modular key points update both general and module-specific files
-- Organized by date automatically
-
-**Input Formats:**
-| Input Format | Save Location | Example |
-|-------------|---------------|---------|
-| `重点：xxx` | `.ai/context.md` | 重点：This is a general key point |
-| `重点-模块名：xxx` | `.ai/模块名-context.md` + `.ai/context.md` | 重点-editor：Editor related key point |
-
-**Usage:**
-
-```bash
-Use the save-context command
-# Or directly input
-重点：All APIs must return unified response format
-重点-editor：Editor text must use Virtual DOM for efficient rendering
-```
-
-**Common Module Names:**
-- `editor` - Editor related
-- `api` - API design related
-- `db` - Database related
-- `auth` - Authentication related
-- `config` - Configuration related
-
-## How to Install
+## Quick Start
 
 ### Install Commands
 
-Commands are stored in the `commands/` directory. To use a command:
-
-1. Copy the command file to global commands directory:
 ```bash
-cp -r commands/git-merge.md ~/.claude/commands/
-```
-
-2. Or copy to project-local commands directory:
-```bash
-cp -r commands/git-merge.md <your-project>/.claude/commands/
-```
-
-3. Use the command:
-```bash
-/git-merge -t=main -c=2
+# Copy command files to global commands directory
+cp commands/commit.md ~/.claude/commands/
+cp commands/git-merge.md ~/.claude/commands/
+cp commands/discuss.md ~/.claude/commands/
+cp commands/save-context.md ~/.claude/commands/
 ```
 
 ### Install Skills
 
-Skills are stored in the `skills/` directory. To use a skill:
-
-1. Copy the skill folder to global skills directory:
 ```bash
+# Copy skill folders to global skills directory
 cp -r skills/formatting-code ~/.claude/skills/
 ```
 
-2. Or copy to project-local skills directory:
-```bash
-cp -r skills/formatting-code <your-project>/.claude/skills/
-```
-
-2. Use the skill:
-```bash
-Use the code-formatting-after-ai-generation skill
-```
-
-### Directory Structure
+## Directory Structure
 
 ```
 lvdaxianerplus-ai/
 ├── commands/
-│   ├── git-merge.md       # Git merge command
-│   ├── discuss.md        # Requirement discussion command
-│   └── save-context.md   # Save key points command
+│   ├── commit.md           # 工具（Tool）
+│   ├── commit-zh.md        # 中文指南（Guide）
+│   ├── commit-en.md        # 英文指南（Guide）
+│   ├── git-merge.md        # 工具（Tool）
+│   ├── git-merge-zh.md    # 中文指南（Guide）
+│   ├── git-merge-en.md     # 英文指南（Guide）
+│   ├── discuss.md          # 工具（Tool，英文）
+│   ├── discuss-zh.md      # 中文指南（Guide）
+│   ├── discuss-en.md      # 英文指南（Guide）
+│   ├── save-context.md    # 工具（Tool）
+│   ├── save-context-zh.md # 中文指南（Guide）
+│   └── save-context-en.md # 英文指南（Guide）
 ├── skills/
-│   └── formatting-code/  # Code formatting skill
-├── README.md             # English documentation
-├── README-zh.md          # Chinese documentation
-└── LICENSE               # MIT License
+│   └── formatting-code/
+│       ├── SKILL.md       # 工具（Tool）
+│       └── SKILL-zh.md    # 中文指南（Guide）
+├── README.md              # English index
+├── README-zh.md           # 中文索引
+└── LICENSE
 ```
 
-## Requirements
-
-- **Supported Languages:** Java, JavaScript, TypeScript, Python, Go
-- **Optional Tools:**
-  - ESLint (for JavaScript/TypeScript)
-  - google-java-format (for Java)
-  - isort (for Python)
-  - goimports (for Go)
-
-## Contributing
-
-Contributions are welcome! Please feel free to:
-- Submit issues
-- Create pull requests
-- Share your own skills
+**Note:**
+- The actual command files (e.g., `commit.md`) are the ones invoked by Claude
+- The `-zh.md` / `-en.md` files are user guides explaining how to install and use
 
 ## License
 
@@ -220,4 +74,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with AI Scaffolding** 🤖
+**Built with AI Scaffolding**

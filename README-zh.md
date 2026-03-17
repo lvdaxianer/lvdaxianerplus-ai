@@ -4,145 +4,38 @@
 
 一个为 AI 脚手架打造的命令和技能集合，用于提升代码质量和开发工作流。
 
-## 关于
+## 命令
 
-本仓库包含为 **AI 脚手架** 设计的自定义命令和技能——一个帮助开发者完成软件工程任务的开源 AI CLI 工具。
+| 命令 | 描述 | 文档 |
+|------|------|------|
+| `/commit` | 使用 conventional commits 规范创建格式化的提交信息 | [指南](./commands/commit-zh.md) |
+| `/git-merge` | AI 辅助的选择性提交合并工具 | [指南](./commands/git-merge-zh.md) |
+| `/discuss` | 交互式需求收集命令 | [指南](./commands/discuss-zh.md) |
+| `save-context` | 将重点保存到项目 context 文件 | [指南](./commands/save-context-zh.md) |
 
-### 什么是 AI 脚手架？
+## 技能
 
-**AI 脚手架** 是一款集成到开发工作流中的开源 AI 助手，它可以：
-- 编写和编辑代码
-- 执行命令
-- 搜索和浏览代码库
-- 执行复杂的多步骤任务
+| 技能 | 描述 | 文档 |
+|------|------|------|
+| `code-formatting-after-ai-generation` | 在 AI 生成代码后格式化清理代码 | [English](./skills/formatting-code/SKILL.md) / [中文](./skills/formatting-code/SKILL-zh.md) |
 
-## 包含的命令和技能
-
-### 1. Git 合并命令
-
-选择性合并提交的工具，支持两种模式：
-- **快捷模式**：通过参数快速执行（如 `-t=main -c=2`）
-- **交互模式**：通过下拉列表选择，灵活配置
-
-**功能：**
-- 支持 Cherry-pick 或 Rebase 合并模式
-- 快捷模式：直接指定目标分支和提交数
-- 交互模式：下拉选择源/目标/提交
-- 冲突解决引导
-
-**使用方法：**
-
-```bash
-# 快捷模式（推荐）
-/git-merge -t=main -c=2              # 将前2个提交 cherry-pick 到 main
-/git-merge -t=main -c=2 -m=rebase   # 使用 rebase 模式
-/git-merge -s=feature-A -t=main -c=1 # 指定源分支
-
-# 交互模式
-/git-merge                    # 完全交互式选择
-/git-merge -t=main           # 指定目标，交互选择源
-```
-
-**参数：**
-| 参数 | 缩写 | 说明 | 必需 |
-|------|------|------|------|
-| `--target` | `-t` | 目标分支 | 是* |
-| `--source` | `-s` | 源分支 | 否（默认当前分支） |
-| `--count` | `-c` | 提交数 | 否（快捷模式） |
-| `--mode` | `-m` | 合并方式：`pick`/`rebase` | 否（默认 pick） |
-
-### 2. AI 代码生成后格式化
-
-在 AI 生成代码后自动格式化和清理代码。
-
-**功能：**
-- 移除未使用的 import
-- 按字母顺序排序 import
-- 移除未使用的私有方法
-- 添加缺失的 Javadoc 注释
-
-**支持的语言：**
-- Java
-- JavaScript / TypeScript
-- Python
-- Go
-
-**使用方法：**
-
-```bash
-使用 code-formatting-after-ai-generation 技能
-```
-
-### 3. 保存重点到 Context 文件
-
-当用户在项目中输入"重点："时，自动将重点保存到项目的 `.ai/context.md` 文件中。
-
-**功能：**
-- 支持通用重点和模块化重点
-- 写入前 AI 理解并提炼要点，用户确认后再写入
-- 模块化重点同时更新通用文件和模块专属文件
-- 按日期分组，自动管理文件结构
-
-**使用格式：**
-| 输入格式 | 保存位置 | 示例 |
-|---------|---------|------|
-| `重点：xxx` | `.ai/context.md` | 重点：这是通用重点 |
-| `重点-模块名：xxx` | `.ai/模块名-context.md` + `.ai/context.md` | 重点-editor：编辑器相关重点 |
-
-**使用方法：**
-
-```bash
-使用 save-context 命令
-# 或直接输入
-重点：所有接口必须返回统一的响应格式
-重点-editor：编辑器文本必须使用 Virtual DOM 进行高效渲染
-```
-
-**常用模块名：**
-- `editor` - 编辑器相关
-- `api` - API 设计相关
-- `db` - 数据库相关
-- `auth` - 认证授权相关
-- `config` - 配置相关
-
-## 如何安装
+## 快速开始
 
 ### 安装命令
 
-命令存放在 `commands/` 目录下。使用方法：
-
-1. 将命令文件复制到全局命令目录：
 ```bash
-cp -r commands/git-merge.md ~/.claude/commands/
-```
-
-2. 或者复制到项目本地命令目录：
-```bash
-cp -r commands/git-merge.md <你的项目>/.claude/commands/
-```
-
-3. 使用命令：
-```bash
-/git-merge -t=main -c=2
+# 复制命令文件到全局命令目录
+cp commands/commit.md ~/.claude/commands/
+cp commands/git-merge.md ~/.claude/commands/
+cp commands/discuss.md ~/.claude/commands/
+cp commands/save-context.md ~/.claude/commands/
 ```
 
 ### 安装技能
 
-技能存放在 `skills/` 目录下。使用方法：
-
-1. 将技能文件夹复制到全局技能目录：
 ```bash
+# 复制技能文件夹到全局技能目录
 cp -r skills/formatting-code ~/.claude/skills/
-```
-
-2. 或者复制到项目本地技能目录：
-```bash
-cp -r skills/formatting-code <你的项目>/.claude/skills/
-```
-
-3. 使用技能：
-```bash
-使用 code-formatting-after-ai-generation 技能
 ```
 
 ## 目录结构
@@ -150,31 +43,30 @@ cp -r skills/formatting-code <你的项目>/.claude/skills/
 ```
 lvdaxianerplus-ai/
 ├── commands/
-│   ├── git-merge.md      # Git 合并命令
-│   ├── discuss.md        # 需求讨论命令
-│   └── save-context.md  # 保存重点命令
+│   ├── commit.md           # 工具（Tool）
+│   ├── commit-zh.md        # 中文指南（Guide）
+│   ├── commit-en.md        # 英文指南（Guide）
+│   ├── git-merge.md        # 工具（Tool）
+│   ├── git-merge-zh.md    # 中文指南（Guide）
+│   ├── git-merge-en.md     # 英文指南（Guide）
+│   ├── discuss.md          # 工具（Tool，中文）
+│   ├── discuss-zh.md      # 中文指南（Guide）
+│   ├── discuss-en.md      # 英文指南（Guide）
+│   ├── save-context.md    # 工具（Tool）
+│   ├── save-context-zh.md # 中文指南（Guide）
+│   └── save-context-en.md # 英文指南（Guide）
 ├── skills/
-│   └── formatting-code/ # 代码格式化技能
-├── README.md             # 英文文档
-├── README-zh.md          # 中文文档
-└── LICENSE               # MIT 许可证
+│   └── formatting-code/
+│       ├── SKILL.md       # 工具（Tool）
+│       └── SKILL-zh.md    # 中文指南（Guide）
+├── README.md              # 英文索引
+├── README-zh.md           # 本文件（索引）
+└── LICENSE
 ```
 
-## 环境要求
-
-- **支持的语言：** Java、JavaScript、TypeScript、Python、Go
-- **可选工具：**
-  - ESLint（用于 JavaScript/TypeScript）
-  - google-java-format（用于 Java）
-  - isort（用于 Python）
-  - goimports（用于 Go）
-
-## 贡献
-
-欢迎贡献！请随时：
-- 提交问题
-- 创建拉取请求
-- 分享你自己的技能
+**说明：**
+- 实际的命令文件（如 `commit.md`）是被 Claude 调用的命令
+- `-zh.md` / `-en.md` 文件是用户使用指南，介绍如何安装和使用
 
 ## 许可证
 
@@ -182,4 +74,4 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-**使用 AI 脚手架构建** 🤖
+**使用 AI 脚手架构建**
