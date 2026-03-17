@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- 更新 README 文档，反映 save-context 重构 (4f69846)
+
+- 重构 save-context skill 为 commands 目录结构 (e41b71a)
+
+### Changed
 - 更新 CHANGELOG，添加 recent changes 记录 (a4aff56)
 
 - 新增需求讨论命令 /discuss (73bb445)
