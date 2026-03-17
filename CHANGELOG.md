@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- 新增需求讨论命令 /discuss (73bb445)
+
+### Changed
+- 更新 save-context skill，增强 AI 上下文理解与提炼功能 (bf44afa)
+
 - 更新 README 文档，添加 save-context skill 说明 (b58b022)
 
 ### Added
