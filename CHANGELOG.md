@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
+- 更新 CHANGELOG，添加 recent changes 记录 (a4aff56)
+
 - 新增需求讨论命令 /discuss (73bb445)
 
 ### Changed
