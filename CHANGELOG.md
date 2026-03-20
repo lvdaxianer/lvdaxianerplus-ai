@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
+- 重构项目上下文结构为 code-review-spec.md (b12f5d6)
+
 - 更新 CHANGELOG (58cdae3)
 
 ### Changed
