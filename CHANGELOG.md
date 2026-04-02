@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- 简化 README 文档结构 (e09bfb7)
+
+### Changed
+- 重构为双重触发机制 skill (28ce628)
+
+- 新增全局 Hook 配置指南 (ab2de56)
 
 ### Changed
 - 将 code-review-spec 从 context 迁移到 skills 目录 (e8a6ba4)
