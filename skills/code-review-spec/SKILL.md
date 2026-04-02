@@ -1,3 +1,8 @@
+---
+name: code-review-spec
+description: Use when performing code review, code review after changes, code formatting, editing code, modifying code, or when user asks to review code. Applies to all programming languages (Java, Python, Go, TypeScript, Vue, etc.). Checks: code specifications, class/method comments, comment ratio (≥40%), naming conventions, security rules, exception handling, logging standards, database specs, API design, git commit format, dependency management, and code complexity limits. Trigger automatically when user modifies or formats code.
+---
+
 # code-review-spec.md
 
 ## 角色定义
@@ -20,7 +25,7 @@
 
 ## 2. 作者标识
 
-所有代码的 `@author` / `@author` 注解必须填写 `lvdaxianerplus`。
+所有代码的 `@author` / `@author` 注解必须填写 `乌骓`。
 
 ## 3. 代码规范
 
