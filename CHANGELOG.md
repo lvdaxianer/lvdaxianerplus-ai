@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
+- 将 code-review-spec 从 context 迁移到 skills 目录 (e8a6ba4)
+
 - 新增产品经理 Skill (cac4d36)
 
 ### Changed
