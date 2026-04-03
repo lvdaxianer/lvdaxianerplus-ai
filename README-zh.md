@@ -36,6 +36,14 @@ cp commands/*.md ~/.claude/commands/
 cp -r skills/* ~/.claude/skills/
 ```
 
+### CLAUDE.md 上下文
+
+部分技能（如 `code-review-spec`）已配置为项目级 CLAUDE.md 上下文，可自动加载：
+
+```bash
+cp context/CLAUDE.md /path/to/your/project/.claude/CLAUDE.md
+```
+
 ## 全局 Hook 配置
 
 如需在每次编辑时自动进行代码审查，可在 `~/.claude/settings.json` 中添加：

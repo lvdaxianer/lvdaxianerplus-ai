@@ -36,6 +36,14 @@ cp commands/*.md ~/.claude/commands/
 cp -r skills/* ~/.claude/skills/
 ```
 
+### CLAUDE.md Context
+
+Some skills (like `code-review-spec`) are configured as project-level CLAUDE.md context and load automatically:
+
+```bash
+cp context/CLAUDE.md /path/to/your/project/.claude/CLAUDE.md
+```
+
 ## Global Hook Configuration
 
 For automatic code review on every edit, add to `~/.claude/settings.json`:
