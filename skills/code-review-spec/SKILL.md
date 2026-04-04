@@ -25,7 +25,7 @@ description: Use when performing code review, code review after changes, code fo
 
 ## 2. 作者标识
 
-所有代码的 `@author` / `@author` 注解必须填写 `乌骓`。
+所有代码的 `@author` / `@author` 注解必须填写 `lvdaxianerplus`。
 
 ## 3. 代码规范
 
@@ -45,7 +45,7 @@ description: Use when performing code review, code review after changes, code fo
  * @param paramName 参数描述（有效值、无效值）
  * @param paramName2 参数描述
  * @return 返回值描述（可能的值、边界情况）
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 创建日期（格式：yyyy-MM-dd）
  */
 public void methodName(String paramName) {
@@ -62,7 +62,7 @@ public void methodName(String paramName) {
 //
 // Returns: 返回值描述（可能的值、边界情况）
 //
-// Author: 乌骓
+// Author: lvdaxianerplus
 // Date: 2024-01-15
 func MethodName(paramName string) {
 
@@ -81,7 +81,7 @@ func MethodName(paramName string) {
  * @param paramName - 参数描述（有效值、无效值）
  * @param paramName2 - 参数描述
  * @returns 返回值描述（可能的值、边界情况）
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 function methodName(paramName: string): void {
@@ -93,7 +93,7 @@ function methodName(paramName: string): void {
  *
  * @param userId - 用户 ID（有效值 > 0）
  * @returns 用户信息对象
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 async function fetchUser(userId: number): Promise<User> {
@@ -109,7 +109,7 @@ async function fetchUser(userId: number): Promise<User> {
  *
  * @param userId - 用户 ID（有效值 > 0）
  * @returns 用户信息对象
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 const getUser = async (userId: number): Promise<User> => {
@@ -134,7 +134,7 @@ def method_name(param_name: str) -> None:
     Returns:
         返回值描述（可能的值、边界情况）
 
-    Author: 乌骓
+    Author: lvdaxianerplus
     Date: 2024-01-15
     """
     pass
@@ -154,7 +154,7 @@ async def fetch_user(user_id: int) -> dict:
     Raises:
         UserNotFoundError: 用户不存在时抛出
 
-    Author: 乌骓
+    Author: lvdaxianerplus
     Date: 2024-01-15
     """
     pass
@@ -173,7 +173,7 @@ async def fetch_user(user_id: int) -> dict:
 /**
  * 类描述，说明核心功能和职责
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 创建日期（格式：yyyy-MM-dd）
  */
 public class ClassName {
@@ -184,7 +184,7 @@ public class ClassName {
 ```go
 // PackageName 类/模块描述，说明核心功能和职责
 //
-// Author: 乌骓
+// Author: lvdaxianerplus
 // Date: 2024-01-15
 package service
 ```
@@ -198,7 +198,7 @@ package service
 /**
  * 类/模块描述，说明核心功能和职责
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 export class UserService {
@@ -208,7 +208,7 @@ export class UserService {
 /**
  * Vue 组件描述，说明核心功能和职责
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 export default defineComponent({
@@ -225,7 +225,7 @@ export default defineComponent({
 """
 类/模块描述，说明核心功能和职责
 
-Author: 乌骓
+Author: lvdaxianerplus
 Date: 2024-01-15
 """
 class UserService:
@@ -237,7 +237,7 @@ class UserService:
 """
 Vue 组件模块描述，说明核心功能和职责
 
-Author: 乌骓
+Author: lvdaxianerplus
 Date: 2024-01-15
 """
 ```
@@ -887,7 +887,7 @@ dev = [
 
 ### 13.1. 注释与文档（强制）
 
-- [✅/❌/不适用] **作者标识**：所有代码的 `@author` 必须填写 `乌骓`
+- [✅/❌/不适用] **作者标识**：所有代码的 `@author` 必须填写 `lvdaxianerplus`
 - [✅/❌/不适用] **方法注释**：所有方法都有完整注释（@param、@return、@author、@date）
 - [✅/❌/不适用] **类注释**：所有类都有 Javadoc 风格文档注释
 - [✅/❌/不适用] **分支注释**：所有 if-else 分支都有条件说明注释
@@ -1038,7 +1038,7 @@ void should_return_user_when_user_exists() {
 /**
  * 用户服务测试类
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 class UserServiceTest {
@@ -1100,7 +1100,7 @@ import (
 // When: 执行被测方法
 // Then: 验证结果
 //
-// Author: 乌骓
+// Author: lvdaxianerplus
 // Date: 2024-01-15
 func TestUserService_ShouldReturnUserWhenUserExists(t *testing.T) {
     // given: 准备测试数据
@@ -1128,7 +1128,7 @@ func TestUserService_ShouldReturnUserWhenUserExists(t *testing.T) {
 /**
  * 用户服务测试类
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -1182,7 +1182,7 @@ import UserCard from './UserCard.vue';
 /**
  * UserCard 组件测试
  *
- * @author 乌骓
+ * @author lvdaxianerplus
  * @date 2024-01-15
  */
 describe('UserCard', () => {
@@ -1215,7 +1215,7 @@ describe('UserCard', () => {
 """
 用户服务测试类
 
-Author: 乌骓
+Author: lvdaxianerplus
 Date: 2024-01-15
 """
 import pytest
