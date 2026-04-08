@@ -21,6 +21,7 @@
 | `ddd` | DDD 最佳实践 |
 | `code-review-spec` | 代码审查（文档和复杂度规范） |
 | `product-manager` | 产品经理最佳实践 |
+| `api-doc` | API 接口文档编写规范，包含各 HTTP 方法的完整示例 |
 
 ## 安装
 

@@ -21,6 +21,7 @@ A collection of commands and skills for AI scaffolding to enhance code quality a
 | `ddd` | Domain-Driven Design best practices |
 | `code-review-spec` | Code review with documentation and complexity standards |
 | `product-manager` | Product management best practices |
+| `api-doc` | API documentation writing specification with examples for all HTTP methods |
 
 ## Install
 
