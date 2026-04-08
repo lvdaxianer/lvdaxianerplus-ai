@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- 将作者标识从乌骓修改为 lvdaxianerplus (64db6ec)
+
+### Changed
+- 完善代码审查清单格式 (4385f6c)
+
 - 完善代码审查清单，标记全部为强制要求 (7510451)
 
 ### Changed
