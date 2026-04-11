@@ -522,17 +522,130 @@ const items = await db.findByIds(ids);
 
 </details>
 
-### 3.7. Java 线程池规范
+### 3.7. 循环内禁止调用远程服务或数据库
+
+> **通用原则**：禁止在 for、map、forEach、filter 等循环结构中直接调用远程服务或连接数据库。
+>
+> 此规范适用于所有编程语言，是保障系统稳定性、性能和可维护性的基础要求。
+
+**核心危害**：
+- **性能崩塌**：循环内发起远程调用会导致 O(n) 的网络开销，系统响应时间随数据量线性增长
+- **资源耗尽**：数据库连接池被快速耗尽，引发连接超时或系统崩溃
+- **服务雪崩**：下游服务收到海量并发请求，容易触发限流或熔断
+- **事务风险**：在循环内操作数据库可能导致长事务，锁竞争加剧
+
+<details>
+<summary><b>正确示例</b></summary>
+
+```java
+// 正确：先批量查询，再循环处理
+List<User> users = userRepository.findAllById(ids);  // 批量查询
+List<UserDTO> results = new ArrayList<>();
+for (User user : users) {
+    UserDTO dto = transform(user);  // 仅内存操作
+    results.add(dto);
+}
+```
+
+```typescript
+// 正确：先批量获取，再循环处理
+const users = await userService.findByIds(userIds);  // 批量查询
+const results = users.map(user => transform(user));   // 仅内存操作
+```
+
+```python
+# 正确：先批量查询，再循环处理
+users = user_repository.find_all_by_ids(user_ids)  # 批量查询
+results = [transform(user) for user in users]       # 仅内存操作
+```
+
+```go
+// 正确：先批量查询，再循环处理
+users := userRepository.FindAllByIDs(ids)  // 批量查询
+for _, user := range users {
+    results = append(results, transform(user))  // 仅内存操作
+}
+```
+
+</details>
+
+<details>
+<summary><b>错误示例</b></summary>
+
+```java
+// 错误：在 for 循环内调用数据库
+for (Long id : ids) {
+    User user = userRepository.findById(id);  // 每条记录一次数据库查询
+}
+
+// 错误：在 forEach 内调用远程服务
+userIds.forEach(id -> {
+    remoteService.getUserDetail(id);  // 每条记录一次远程调用
+});
+```
+
+```typescript
+// 错误：在 map 内调用远程服务
+const results = userIds.map(async id => {
+    return await remoteService.getUserDetail(id);  // 每条记录一次远程调用
+});
+
+// 错误：在 filter 内调用数据库
+const activeUsers = userIds.filter(id => {
+    return database.isUserActive(id);  // 每条记录一次数据库查询
+});
+```
+
+```python
+# 错误：在 for 循环内调用远程服务
+for user_id in user_ids:
+    user = api.get_user(user_id)  # 每条记录一次远程调用
+
+# 错误：在列表推导式内调用数据库
+active_users = [u for u in db.get_all_users() if db.is_active(u.id)]  # 每条记录一次数据库查询
+```
+
+```go
+// 错误：在 for 循环内调用远程服务
+for _, id := range ids {
+    user, _ := remoteService.GetUserDetail(id)  // 每条记录一次远程调用
+}
+```
+
+</details>
+
+**正确做法**：
+1. **批量接口**：调用方提供批量查询 API（如 `findAllById(ids)`、`getUsersByIds(ids)`）
+2. **内存操作**：循环仅做内存数据转换、聚合等无副作用操作
+3. **异步批处理**：如必须分批处理，使用滑动窗口或并发批处理（如每批 100 条）
+4. **缓存预热**：热点数据提前加载到缓存，减少循环内远程调用
+
+**示例：滑动窗口批处理**
+
+```java
+// 正确：分批处理，每批 100 条
+private static final int BATCH_SIZE = 100;
+
+public void processUsers(List<Long> userIds) {
+    // 分批处理大列表，避免一次性加载或处理
+    for (int i = 0; i < userIds.size(); i += BATCH_SIZE) {
+        List<Long> batch = userIds.subList(i, Math.min(i + BATCH_SIZE, userIds.size()));
+        processBatch(batch);  // 每批内部仍是批量操作
+    }
+}
+```
+
+### 3.8. Java 线程池规范
 
 > **仅适用于 Java**：禁止使用已定义的线程池（如 `ExecutorService`、`@Async` 默认线程池），必须使用自定义线程池。
 
-#### 3.7.1. 线程池定义要求
+#### 3.8.1. 线程池定义要求
 
 - 必须定义有意义的 `threadName`（使用 `ThreadFactory` 设置）
 - 必须使用有业务含义的日志标识
 - 线程池名称应体现业务用途
 
-#### 3.7.2. 线程池定义示例
+#### 3.8.2. 线程池定义示例
 
 ```java
 // 定义业务线程池
@@ -564,7 +677,7 @@ public void processUserTask(User user) {
 }
 ```
 
-#### 3.7.3. 常见业务线程池命名
+#### 3.8.3. 常见业务线程池命名
 
 | 业务场景 | 线程池名称示例 |
 |----------|---------------|
@@ -574,7 +687,7 @@ public void processUserTask(User user) {
 | 数据同步 | `data-sync-%d`、`sync-worker-%d` |
 | 文件处理 | `file-processor-%d`、`file-handler-%d` |
 
-#### 3.7.4. 错误示例
+#### 3.8.4. 错误示例
 
 ```java
 // 错误：使用匿名线程池，无有意义名称
@@ -927,6 +1040,7 @@ EOF
 
 - [✅/❌/不适用] **禁止 for 循环**：能用批量处理的场景（如 `saveAll()`、`findAllById()`）必须使用批量 API，禁止使用 for 循环逐条处理
 - [✅/❌/不适用] **批量查询**：多次数据库查询必须合并为批量查询
+- [✅/❌/不适用] **循环内禁止远程/DB调用**：禁止在 for、map、forEach、filter 等循环内直接调用远程服务或连接数据库
 
 ### 13.4. Java 线程池（强制，仅 Java）
 
