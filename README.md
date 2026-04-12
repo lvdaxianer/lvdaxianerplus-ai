@@ -22,6 +22,7 @@ A collection of commands and skills for AI scaffolding to enhance code quality a
 | `code-review-spec` | Code review with documentation and complexity standards |
 | `product-manager` | Product management best practices |
 | `api-doc` | API documentation writing specification with examples for all HTTP methods |
+| `story-line` | Story line authoring skill driven by Superpowers brainstorm, generates executable story documents with Chrome DevTools MCP testing validation |
 
 ## Workflow Documents
 

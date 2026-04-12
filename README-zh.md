@@ -22,6 +22,7 @@
 | `code-review-spec` | 代码审查（文档和复杂度规范） |
 | `product-manager` | 产品经理最佳实践 |
 | `api-doc` | API 接口文档编写规范，包含各 HTTP 方法的完整示例 |
+| `story-line` | 故事线编写技能，由 Superpowers brainstorm 驱动，生成可执行的故事线文档，支持 Chrome DevTools MCP 测试验证 |
 
 ## 工作流文档
 
