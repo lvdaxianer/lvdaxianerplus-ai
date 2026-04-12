@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
+- 添加循环内禁止调用远程服务或数据库规范 (269f7d2)
+
 - 添加 if-else 强制配对规范 (48a8c92)
 
 ### Changed
