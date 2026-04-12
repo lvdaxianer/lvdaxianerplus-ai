@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- 更新 Spec-Kit 规范说明和变更日志 (51b2f6b)
 
 ### Changed
 - 添加循环内禁止调用远程服务或数据库规范 (269f7d2)
