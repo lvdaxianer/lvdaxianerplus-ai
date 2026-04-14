@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- 将浏览器测试改为可选，移除强制要求 (6eadabe)
+
+### Changed
+- 增强故事线技能测试场景覆盖和 Chrome DevTools 测试要求 (c0b9a49)
+
 - 更新变更日志 (951053d)
 
 ### Changed
