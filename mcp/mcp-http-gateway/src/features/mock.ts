@@ -7,6 +7,7 @@
  * - Dynamic field-based data generation
  * - Simulated delay
  * - Mock data management
+ * - SQLite persistence
  *
  * @author lvdaxianerplus
  * @date 2026-04-19
@@ -16,12 +17,16 @@ import type { MockToolConfig, MockConfig } from '../config/types.js';
 import { logger } from '../middleware/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import { generateDynamicResponse } from './mock-generator.js';
+import { getDatabase } from '../database/connection.js';
 
 // Global mock enabled flag
 let globalMockEnabled = false;
 
-// Mock data store
+// Mock data store (内存缓存 + SQLite 持久化)
 let mockDataStore: Record<string, MockToolConfig> = {};
+
+// 持久化是否启用
+let persistenceEnabled = false;
 
 /**
  * Initialize mock handler
@@ -32,14 +37,109 @@ let mockDataStore: Record<string, MockToolConfig> = {};
  * @date 2026-04-19
  */
 export function initMockHandler(config: MockConfig | undefined): void {
+  // 条件注释：无配置时不初始化，有配置时执行初始化
   if (!config) {
+    logger.info('[Mock Handler] No config provided, skip initialization');
     return;
+  } else {
+    // 有配置，执行初始化流程
+    globalMockEnabled = config.enabled;
+    persistenceEnabled = true;
+
+    // Load persisted mock configs from SQLite
+    loadMockConfigsFromDatabase();
+
+    // Merge with config-provided mock data (config takes priority)
+    // 条件注释：配置中有 mockData 时合并并持久化，无 mockData 时跳过
+    if (config.mockData) {
+      for (const [toolName, mockConfig] of Object.entries(config.mockData)) {
+        mockDataStore[toolName] = mockConfig;
+        // Persist to database
+        saveMockConfigToDatabase(toolName, mockConfig);
+      }
+    } else {
+      // 配置中无 mockData，仅使用持久化数据
+    }
+
+    logger.info('[Mock Handler] Initialized', {
+      globalMockEnabled,
+      toolCount: Object.keys(mockDataStore).length,
+      persistenceEnabled
+    });
   }
+}
 
-  globalMockEnabled = config.enabled;
-  mockDataStore = config.mockData ?? {};
+/**
+ * Load mock configs from SQLite database
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-19
+ */
+function loadMockConfigsFromDatabase(): void {
+  const db = getDatabase();
+  // 条件注释：数据库不可用时仅使用内存存储，可用时加载持久化配置
+  if (!db) {
+    logger.warn('[Mock Handler] Database not available, using memory only');
+    return;
+  } else {
+    // 数据库可用，加载持久化配置
+    try {
+      const rows = db.prepare(`
+        SELECT tool_name, enabled, config_json
+        FROM mock_configs
+      `).all() as Array<{
+        tool_name: string;
+        enabled: number;
+        config_json: string;
+      }>;
 
-  logger.info('[Mock Handler] Initialized', { globalMockEnabled, toolCount: Object.keys(mockDataStore).length });
+      for (const row of rows) {
+        try {
+          const config = JSON.parse(row.config_json) as MockToolConfig;
+          mockDataStore[row.tool_name] = config;
+        } catch {
+          logger.warn('[Mock Handler] Failed to parse mock config', { toolName: row.tool_name });
+        }
+      }
+
+      logger.info('[Mock Handler] Loaded mock configs from database', { count: rows.length });
+    } catch (error) {
+      logger.error('[Mock Handler] Failed to load mock configs', { error });
+    }
+  }
+}
+
+/**
+ * Save mock config to SQLite database
+ *
+ * @param toolName - Tool name
+ * @param config - Mock configuration
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-19
+ */
+function saveMockConfigToDatabase(toolName: string, config: MockToolConfig): void {
+  const db = getDatabase();
+  // 条件注释：数据库不可用时跳过持久化，可用时保存到数据库
+  if (!db) {
+    logger.warn('[Mock Handler] Database not available, skipping persistence');
+    return;
+  } else {
+    // 数据库可用，保存配置
+    try {
+      const configJson = JSON.stringify(config);
+      const enabled = config.enabled ? 1 : 0;
+
+      db.prepare(`
+        INSERT OR REPLACE INTO mock_configs (tool_name, enabled, config_json, updated_at)
+        VALUES (?, ?, ?, datetime('now'))
+      `).run(toolName, enabled, configJson);
+
+      logger.info('[Mock Handler] Saved mock config to database', { toolName });
+    } catch (error) {
+      logger.error('[Mock Handler] Failed to save mock config', { error, toolName });
+    }
+  }
 }
 
 /**
@@ -236,6 +336,12 @@ export async function simulateDelay(delayMs: number): Promise<void> {
  */
 export function updateMockData(toolName: string, mockConfig: MockToolConfig): void {
   mockDataStore[toolName] = mockConfig;
+
+  // Persist to SQLite
+  if (persistenceEnabled) {
+    saveMockConfigToDatabase(toolName, mockConfig);
+  }
+
   logger.info('[Mock Handler] Updated mock data', { toolName });
 }
 
@@ -250,6 +356,13 @@ export function updateMockData(toolName: string, mockConfig: MockToolConfig): vo
 export function deleteMockData(toolName: string): void {
   if (mockDataStore[toolName]) {
     delete mockDataStore[toolName];
+
+    // Delete from SQLite
+    const db = getDatabase();
+    if (db && persistenceEnabled) {
+      db.prepare('DELETE FROM mock_configs WHERE tool_name = ?').run(toolName);
+    }
+
     logger.info('[Mock Handler] Deleted mock data', { toolName });
   }
 }
