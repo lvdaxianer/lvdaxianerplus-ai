@@ -33,12 +33,18 @@ export function initDatabase(config: SQLiteLoggingConfig): Database.Database {
 
   // Ensure data directory exists
   const dataDir = dbPath.split('/').slice(0, -1).join('/');
+  // 条件注释：数据目录存在时创建目录，不存在时跳过
   if (dataDir) {
     import('fs').then(fs => {
+      // 条件注释：数据目录不存在时创建，存在时跳过
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
+      } else {
+        // 数据目录已存在，无需创建
       }
     });
+  } else {
+    // 数据库路径在当前目录，无需创建数据目录
   }
 
   // Create or open database
@@ -167,6 +173,21 @@ function createTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_alert_logs_severity ON alert_logs(severity);
   `);
 
+  // Mock configs table - 持久化 Mock 配置
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS mock_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tool_name TEXT NOT NULL UNIQUE,
+      enabled INTEGER NOT NULL DEFAULT 0,
+      config_json TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_mock_configs_tool ON mock_configs(tool_name);
+    CREATE INDEX IF NOT EXISTS idx_mock_configs_enabled ON mock_configs(enabled);
+  `);
+
   logger.info('[SQLite] Tables created successfully');
 }
 
@@ -201,10 +222,14 @@ export function getDatabasePath(): string {
  * @date 2026-04-19
  */
 export function closeDatabase(): void {
+  // 条件注释：数据库连接存在时关闭，不存在时跳过
   if (db) {
     db.close();
     db = null;
     logger.info('[SQLite] Database connection closed');
+  } else {
+    // 数据库连接不存在，无需关闭
+    logger.debug('[SQLite] Database connection already closed or not initialized');
   }
 }
 
@@ -217,10 +242,26 @@ export function closeDatabase(): void {
  * @date 2026-04-19
  */
 export function cleanOldRecords(maxDays: number): void {
+  // 条件注释：数据库未初始化时直接返回，已初始化时执行清理
   if (!db) {
+    logger.warn('[SQLite] Database not initialized, skip cleaning');
     return;
+  } else {
+    // 数据库已初始化，执行清理逻辑
+    performCleanOperations(db, maxDays);
   }
+}
 
+/**
+ * 执行数据库清理操作（内部辅助方法）
+ *
+ * @param db - Database instance
+ * @param maxDays - Maximum days to keep records
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-19
+ */
+function performCleanOperations(db: Database.Database, maxDays: number): void {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - maxDays);
   const cutoffDateKey = cutoffDate.toISOString().split('T')[0];
@@ -274,17 +315,20 @@ export function cleanOldRecords(maxDays: number): void {
  * @date 2026-04-19
  */
 export function backupDatabase(backupPath: string): boolean {
+  // 条件注释：数据库未初始化时返回失败，已初始化时执行备份
   if (!db) {
+    logger.warn('[SQLite] Database not initialized, backup failed');
     return false;
-  }
-
-  try {
-    db.backup(backupPath);
-    logger.info('[SQLite] Database backed up', { backupPath });
-    return true;
-  } catch (error) {
-    logger.error('[SQLite] Backup failed', { error, backupPath });
-    return false;
+  } else {
+    // 数据库已初始化，执行备份
+    try {
+      db.backup(backupPath);
+      logger.info('[SQLite] Database backed up', { backupPath });
+      return true;
+    } catch (error) {
+      logger.error('[SQLite] Backup failed', { error, backupPath });
+      return false;
+    }
   }
 }
 
