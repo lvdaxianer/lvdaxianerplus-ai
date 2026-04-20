@@ -1,0 +1,106 @@
+<h2>mcp-arch-diagram 架构设计</h2>
+<p class="subtitle">独立 MCP 服务的技术架构</p>
+
+<div class="mockup">
+  <div class="mockup-header">系统架构图</div>
+  <div class="mockup-body" style="padding: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- 顶层：Claude Code -->
+      <div style="text-align: center;">
+        <div style="padding: 12px; background: #5c6bc0; color: white; border-radius: 8px; display: inline-block;">
+          Claude Code
+        </div>
+        <div style="font-size: 12px; color: #666; margin-top: 4px;">调用 MCP 工具</div>
+      </div>
+
+      <!-- 箭头 -->
+      <div style="text-align: center; color: #999;">↓ MCP Protocol (stdio/sse)</div>
+
+      <!-- MCP 服务层 -->
+      <div style="border: 2px solid #4caf50; border-radius: 8px; padding: 16px; background: #f1f8e9;">
+        <div style="text-align: center; font-weight: bold; color: #2e7d32; margin-bottom: 12px;">
+          mcp-arch-diagram (MCP Server)
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <div style="padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 4px; width: 30%;">
+            <div style="font-weight: 500; color: #333;">工具层</div>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+              • generate_diagram<br>
+              • list_templates<br>
+              • get_diagram
+            </div>
+          </div>
+          <div style="padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 4px; width: 30%;">
+            <div style="font-weight: 500; color: #333;">解析层</div>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+              • 自然语言解析<br>
+              • 模板匹配<br>
+              • 结构校验
+            </div>
+          </div>
+          <div style="padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 4px; width: 30%;">
+            <div style="font-weight: 500; color: #333;">渲染层</div>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+              • D2 引擎<br>
+              • Mermaid 引擎<br>
+              • 图片导出
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 箭头 -->
+      <div style="text-align: center; color: #999;">↓ 渲染输出</div>
+
+      <!-- 输出层 -->
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <div style="padding: 8px; background: #e3f2fd; border-radius: 4px; text-align: center;">
+          <div style="font-size: 20px;">🖼️</div>
+          <div style="font-size: 12px;">PNG/SVG</div>
+        </div>
+        <div style="padding: 8px; background: #fff3e0; border-radius: 4px; text-align: center;">
+          <div style="font-size: 20px;">📄</div>
+          <div style="font-size: 12px;">.d2/.mmd</div>
+        </div>
+        <div style="padding: 8px; background: #fce4ec; border-radius: 4px; text-align: center;">
+          <div style="font-size: 20px;">📁</div>
+          <div style="font-size: 12px;">本地存储</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>核心模块职责</h3>
+  <div style="display: flex; gap: 16px;">
+    <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 33%;">
+      <h4 style="color: #5c6bc0;">工具层</h4>
+      <ul style="font-size: 14px; color: #555; padding-left: 16px;">
+        <li><strong>generate_diagram</strong> - 生成架构图</li>
+        <li><strong>list_templates</strong> - 获取可用模板</li>
+        <li><strong>get_diagram</strong> - 获取已保存的图</li>
+      </ul>
+    </div>
+    <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 33%;">
+      <h4 style="color: #4caf50;">解析层</h4>
+      <ul style="font-size: 14px; color: #555; padding-left: 16px;">
+        <li>解析自然语言描述</li>
+        <li>识别架构图类型</li>
+        <li>提取组件和关系</li>
+      </ul>
+    </div>
+    <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 33%;">
+      <h4 style="color: #ff9800;">渲染层</h4>
+      <ul style="font-size: 14px; color: #555; padding-left: 16px;">
+        <li>D2/Mermaid 代码生成</li>
+        <li>调用引擎渲染图片</li>
+        <li>保存到本地目录</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 16px; text-align: center; color: #666;">
+  这是整体架构设计，你觉得这个分层合理吗？
+</p>

@@ -1,0 +1,89 @@
+<h2>技术方案对比</h2>
+<p class="subtitle">三种实现路径，各有优劣</p>
+
+<div class="options">
+  <div class="option" data-choice="standalone" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>独立 MCP 服务（推荐）</h3>
+      <p style="color: #4caf50; font-weight: 500;">✓ 我的推荐</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优势</h4>
+          <ul>
+            <li>职责清晰，独立演进</li>
+            <li>不影响现有 mcp-http-gateway</li>
+            <li>可单独部署和扩展</li>
+            <li>依赖更少，更轻量</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣势</h4>
+          <ul>
+            <li>需要新建项目结构</li>
+            <li>配置管理需重新设计</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="embedded" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>嵌入 mcp-http-gateway</h3>
+      <p>作为现有项目的功能模块</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优势</h4>
+          <ul>
+            <li>复用现有基础设施</li>
+            <li>配置、日志、监控统一</li>
+            <li>开发工作量较小</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣势</h4>
+          <ul>
+            <li>职责混杂，耦合度高</li>
+            <li>mcp-http-gateway 变得臃肿</li>
+            <li>不符合单一职责原则</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>独立 MCP + 共享基础设施</h3>
+      <p>新项目，复用通用工具库</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优势</h4>
+          <ul>
+            <li>独立服务，职责清晰</li>
+            <li>复用 types.ts 等通用定义</li>
+            <li>配置风格保持一致</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣势</h4>
+          <ul>
+            <li>需要维护共享库</li>
+            <li>依赖关系增加</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px;">
+  <h4 style="margin-bottom: 8px;">我的推荐理由</h4>
+  <p style="margin: 0; color: #666;">
+    选择 <strong>方案 A（独立 MCP）</strong>，因为架构图生成是一个独立的能力域，与 HTTP 网关职责完全不同。
+    独立服务更易于维护、测试和扩展，未来还可以单独迭代而不影响网关的稳定性。
+  </p>
+</div>

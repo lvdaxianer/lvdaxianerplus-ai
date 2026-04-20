@@ -21,5 +21,9 @@ node_modules
 dist
 target
 logs
+# specs and .specify are now tracked for speckit workflow
+# .superpowers brainstorming artifacts tracked for design history
 backups
 data
+.ai
+.playwright-mcp

@@ -1,0 +1,55 @@
+<h2>技术方案对比</h2>
+<p class="subtitle">三种实现路径，各有优劣</p>
+
+<div class="options">
+  <div class="option" data-choice="standalone" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>独立 MCP 服务（推荐）</h3>
+      <p style="color: #4caf50; font-weight: 500;">✓ 我的推荐</p>
+      <ul>
+        <li>职责清晰，独立演进</li>
+        <li>不影响现有 mcp-http-gateway</li>
+        <li>可单独部署和扩展</li>
+        <li>依赖更少，更轻量</li>
+      </ul>
+      <p style="color: #999; font-size: 14px;">需新建项目结构</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="embedded" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>嵌入 mcp-http-gateway</h3>
+      <p>作为现有项目的功能模块</p>
+      <ul>
+        <li>复用现有基础设施</li>
+        <li>配置、日志、监控统一</li>
+        <li>开发工作量较小</li>
+      </ul>
+      <p style="color: #f44336; font-size: 14px;">职责混杂，耦合度高</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>独立 MCP + 共享基础设施</h3>
+      <p>新项目，复用通用工具库</p>
+      <ul>
+        <li>独立服务，职责清晰</li>
+        <li>复用 types.ts 等通用定义</li>
+        <li>配置风格保持一致</li>
+      </ul>
+      <p style="color: #999; font-size: 14px;">需维护共享库</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; background: #e8f5e9; border-radius: 8px;">
+  <h4 style="margin-bottom: 8px; color: #2e7d32;">推荐理由</h4>
+  <p style="margin: 0; color: #555;">
+    架构图生成是独立能力域，与 HTTP 网关职责完全不同。
+    独立服务更易维护、测试、扩展，未来可单独迭代。
+  </p>
+</div>

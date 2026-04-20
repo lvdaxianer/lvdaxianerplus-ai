@@ -1,0 +1,6 @@
+{"type":"server-started","port":49771,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:49771","screen_dir":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/content","state_dir":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/state"}
+{"type":"screen-added","file":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/content/tech-approaches.html"}
+{"type":"screen-added","file":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/content/arch-design.html"}
+{"type":"screen-added","file":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/content/tools-def.html"}
+{"type":"screen-added","file":"/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/.superpowers/brainstorm/56344-1776658889/content/project-structure.html"}
+{"type":"server-stopped","reason":"idle timeout"}

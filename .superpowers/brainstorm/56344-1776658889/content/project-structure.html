@@ -1,0 +1,71 @@
+<h2>项目目录结构</h2>
+<p class="subtitle">mcp-arch-diagram 的文件组织</p>
+
+<div style="background: #263238; color: #eceff1; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6;">
+mcp-arch-diagram/
+├── <span style="color: #80cbc4;">src/</span>
+│   ├── <span style="color: #80cbc4;">core/</span>
+│   │   ├── <span style="color: #c3e88d;">server.ts</span>          <span style="color: #78909c;">// MCP 服务入口</span>
+│   │   ├── <span style="color: #c3e88d;">tools.ts</span>          <span style="color: #78909c;">// 工具注册与处理</span>
+│   │   └── <span style="color: #c3e88d;">protocol.ts</span>       <span style="color: #78909c;">// MCP 协议处理</span>
+│   │
+│   ├── <span style="color: #80cbc4;">parser/</span>
+│   │   ├── <span style="color: #c3e88d;">nlp-parser.ts</span>     <span style="color: #78909c;">// 自然语言解析</span>
+│   │   ├── <span style="color: #c3e88d;">template-matcher.ts</span> <span style="color: #78909c;">// 模板匹配</span>
+│   │   └── <span style="color: #c3e88d;">validator.ts</span>       <span style="color: #78909c;">// 结构校验</span>
+│   │
+│   ├── <span style="color: #80cbc4;">renderer/</span>
+│   │   ├── <span style="color: #c3e88d;">d2-engine.ts</span>      <span style="color: #78909c;">// D2 渲染引擎</span>
+│   │   ├── <span style="color: #c3e88d;">mermaid-engine.ts</span> <span style="color: #78909c;">// Mermaid 渲染引擎</span>
+│   │   ├── <span style="color: #c3e88d;">exporter.ts</span>       <span style="color: #78909c;">// 图片导出</span>
+│   │   └── <span style="color: #c3e88d;">code-gen.ts</span>       <span style="color: #78909c;">// D2/Mermaid 代码生成</span>
+│   │
+│   ├── <span style="color: #80cbc4;">templates/</span>
+│   │   ├── <span style="color: #c3e88d;">deployment/</span>       <span style="color: #78909c;">// 部署架构模板</span>
+│   │   ├── <span style="color: #c3e88d;">business/</span>         <span style="color: #78909c;">// 业务架构模板</span>
+│   │   ├── <span style="color: #c3e88d;">function/</span>         <span style="color: #78909c;">// 功能架构模板</span>
+│   │   └── <span style="color: #c3e88d;">index.ts</span>          <span style="color: #78909c;">// 模板加载器</span>
+│   │
+│   ├── <span style="color: #80cbc4;">storage/</span>
+│   │   ├── <span style="color: #c3e88d;">file-store.ts</span>     <span style="color: #78909c;">// 文件存储管理</span>
+│   │   └── <span style="color: #c3e88d;">metadata.ts</span>       <span style="color: #78909c;">// 元数据管理</span>
+│   │
+│   ├── <span style="color: #80cbc4;">config/</span>
+│   │   ├── <span style="color: #c3e88d;">types.ts</span>          <span style="color: #78909c;">// 类型定义</span>
+│   │   └── <span style="color: #c3e88d;">defaults.ts</span>       <span style="color: #78909c;">// 默认配置</span>
+│   │
+│   └── <span style="color: #c3e88d;">index.ts</span>              <span style="color: #78909c;">// 主入口</span>
+│
+├── <span style="color: #80cbc4;">config/</span>
+│   └── <span style="color: #c3e88d;">default.yaml</span>          <span style="color: #78909c;">// 默认配置文件</span>
+│
+├── <span style="color: #80cbc4;">diagrams/</span>                <span style="color: #78909c;">// 输出目录（默认）</span>
+│
+├── <span style="color: #c3e88d;">package.json</span>
+├── <span style="color: #c3e88d;">tsconfig.json</span>
+├── <span style="color: #c3e88d;">README.md</span>
+└── <span style="color: #c3e88d;">CHANGELOG.md</span>
+</div>
+
+<div style="margin-top: 24px; display: flex; gap: 16px;">
+  <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 25%;">
+    <h4 style="color: #5c6bc0; margin-bottom: 8px;">core/</h4>
+    <p style="font-size: 13px; color: #666;">MCP 服务核心，处理协议和工具注册</p>
+  </div>
+  <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 25%;">
+    <h4 style="color: #4caf50; margin-bottom: 8px;">parser/</h4>
+    <p style="font-size: 13px; color: #666;">解析自然语言描述，提取架构信息</p>
+  </div>
+  <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 25%;">
+    <h4 style="color: #ff9800; margin-bottom: 8px;">renderer/</h4>
+    <p style="font-size: 13px; color: #666;">渲染引擎，生成图片和代码文件</p>
+  </div>
+  <div style="padding: 12px; background: #f5f5f5; border-radius: 8px; width: 25%;">
+    <h4 style="color: #2196f3; margin-bottom: 8px;">templates/</h4>
+    <p style="font-size: 13px; color: #666;">预定义架构模板，加速常见场景</p>
+  </div>
+</div>
+
+<p style="margin-top: 16px; text-align: center; color: #666;">
+这个目录结构清晰分层，每个模块职责单一。你觉得合理吗？
+</p>

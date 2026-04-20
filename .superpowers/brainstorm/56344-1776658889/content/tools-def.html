@@ -1,0 +1,99 @@
+<h2>MCP 工具定义</h2>
+<p class="subtitle">三个核心工具的参数和返回值设计</p>
+
+<div style="display: flex; flex-direction: column; gap: 20px;">
+
+  <!-- Tool 1: generate_diagram -->
+  <div style="border: 2px solid #4caf50; border-radius: 8px; padding: 16px; background: #f1f8e9;">
+    <h3 style="color: #2e7d32; margin-bottom: 12px;">🔧 generate_diagram</h3>
+    <p style="color: #666; font-size: 14px;">根据描述生成架构图</p>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">输入参数</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "description": "画一个微服务架构，包含网关、订单服务、用户服务...",  <span style="color: #999;">// 自然语言描述</span>
+  "type": "deployment",  <span style="color: #999;">// 可选: deployment | business | function</span>
+  "template": "microservice",  <span style="color: #999;">// 可选: 使用预定义模板</span>
+  "engine": "d2",  <span style="color: #999;">// 可选: d2 | mermaid，默认 d2</span>
+  "outputDir": "./diagrams"  <span style="color: #999;">// 输出目录</span>
+}
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">返回结果</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "success": true,
+  "files": {
+    "image": "./diagrams/arch-001.png",
+    "code": "./diagrams/arch-001.d2"
+  },
+  "preview": "base64_image_data...",  <span style="color: #999;">// 可选: 图片预览</span>
+  "message": "架构图生成成功"
+}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool 2: list_templates -->
+  <div style="border: 2px solid #2196f3; border-radius: 8px; padding: 16px; background: #e3f2fd;">
+    <h3 style="color: #1565c0; margin-bottom: 12px;">📋 list_templates</h3>
+    <p style="color: #666; font-size: 14px;">获取可用的架构图模板列表</p>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">输入参数</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "type": "deployment"  <span style="color: #999;">// 可选: 筛选特定类型的模板</span>
+}
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">返回结果</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "templates": [
+    { "name": "microservice", "type": "deployment", "description": "微服务架构模板" },
+    { "name": "three-tier", "type": "deployment", "description": "三层架构模板" },
+    { "name": "c4-model", "type": "function", "description": "C4 模型模板" }
+  ]
+}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool 3: get_diagram -->
+  <div style="border: 2px solid #ff9800; border-radius: 8px; padding: 16px; background: #fff3e0;">
+    <h3 style="color: #e65100; margin-bottom: 12px;">📂 get_diagram</h3>
+    <p style="color: #666; font-size: 14px;">获取已保存的架构图</p>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">输入参数</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "id": "arch-001",  <span style="color: #999;">// 架构图 ID</span>
+  "format": "image"  <span style="color: #999;">// 可选: image | code | both</span>
+}
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="color: #333;">返回结果</h4>
+      <div style="background: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+{
+  "id": "arch-001",
+  "image": "base64_data...",  <span style="color: #999;">// 或文件路径</span>
+  "code": "direction: right\n...",
+  "metadata": { "type": "deployment", "created": "2026-04-20" }
+}
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 16px; text-align: center; color: #666;">
+这三个工具定义覆盖了生成、查询、获取的核心流程。你觉得是否需要补充其他工具？
+</p>
