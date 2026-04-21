@@ -3,10 +3,13 @@
     "http-gateway": {
       "command": "node",
       "args": [
-        "/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/mcp/mcp-http-gateway/dist/index.js",
+        "mcp/mcp-http-gateway/dist/cli.js",
         "--config",
-        "/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai/mcp/mcp-http-gateway/test.tools.json"
-      ]
+        "mcp/mcp-http-gateway/test.tools.filtered.json"
+      ],
+      "cwd": "/Users/lvdaxianer/workspace/my/project/lvdaxianerplus-ai",
+      "description": "UINO 孪生体平台 API 网关（18个查询类工具）",
+      "type": "stdio"
     }
   }
 }

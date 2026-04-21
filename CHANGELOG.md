@@ -6,7 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
+- 修复 SQLite 日志记录失败问题 (5a14fac)
+
+- before write_file (c6f2dcc)
+
+### Changed
+- before patch (70542f4)
+
+- before patch (80b491b)
+
+### Changed
+- 更新变更日志 (fb8123c)
+
 - 添加 MCP 架构图生成器完整实现 (83be717)
 
 ### Changed
