@@ -137,7 +137,7 @@
     tbody.innerHTML = data.tools.map(t => {
       const isOn = t.mockEnabled;
       return '<tr>' +
-        '<td><strong>' + t.name + '</strong></td>' +
+        '<td><div style="display:flex;flex-direction:column;gap:2px;"><strong>' + t.name + '</strong><span style="font-size:12px;color:var(--text-muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;">' + (t.description || '') + '</span></div></td>' +
         '<td>' + t.method + '</td>' +
         '<td style="color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">' + t.path + '</td>' +
         '<td><span class="badge ' + (isOn ? 'badge-on' : 'badge-off') + '">' + (isOn ? '开启' : '关闭') + '</span></td>' +

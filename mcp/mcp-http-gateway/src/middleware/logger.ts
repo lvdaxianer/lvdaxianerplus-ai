@@ -142,14 +142,9 @@ function writeLog(level: LogLevel, message: string, meta?: Record<string, unknow
     // 日志未超限：无需移除
   }
 
-  // 使用 stderr 输出，避免干扰 STDIO 模式的 MCP 协议通信
-  // 条件：error 级别使用 stderr，其他级别使用 stdout
-  if (level === 'error') {
-    process.stderr.write(formatLog(entry) + '\n');
-  } else {
-    // 非 error 级别：输出到 stdout
-    process.stdout.write(formatLog(entry) + '\n');
-  }
+  // MCP STDIO 模式：所有日志必须输出到 stderr，stdout 只用于 JSON-RPC 消息
+  // 条件：所有级别都使用 stderr 输出
+  process.stderr.write(formatLog(entry) + '\n');
 }
 
 export const logger = {

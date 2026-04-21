@@ -50,6 +50,41 @@
 - 缓存也失效时，返回 Mock 数据避免空白响应
 - 适合对实时性要求不高、但需要保证响应的场景
 
+### 3. SQLite 日志记录
+
+完整记录 MCP 工具调用的请求和响应详情，支持 Dashboard 可视化查询。
+
+```json
+{
+  "sqlite": {
+    "enabled": true,
+    "dbPath": "/absolute/path/to/logs.db",
+    "maxDays": 30
+  }
+}
+```
+
+**记录内容**：
+- **请求日志**：工具名、HTTP 方法、URL、请求头、请求体
+- **响应日志**：HTTP 状态码、响应体、耗时
+- **错误日志**：错误类型、错误堆栈、失败请求详情
+
+**API 查询日志**：
+
+```bash
+# 分页查询日志（推荐）
+curl "http://localhost:11112/api/logs/paginated?page=1&pageSize=20"
+
+# 按日期查询
+curl "http://localhost:11112/api/logs/paginated?date=2026-04-21"
+
+# 按工具名查询
+curl "http://localhost:11112/api/logs/paginated?tool=CI_TAG_LIST_QUERY"
+
+# 查询错误日志
+curl "http://localhost:11112/api/errors?date=2026-04-21&limit=50"
+```
+
 ---
 
 ## 快速部署
@@ -99,7 +134,8 @@ node dist/cli.js --config ./tools.json
   "mcpServers": {
     "http-gateway": {
       "command": "node",
-      "args": ["./dist/cli.js", "--config", "./tools.json"]
+      "args": ["./dist/cli.js", "--config", "./tools.json"],
+      "cwd": "/absolute/path/to/mcp-http-gateway"
     }
   }
 }
@@ -187,6 +223,141 @@ curl -X POST http://localhost:11112/api/config/restore/<backup-file>
 | `--transport <mode>` | 传输模式：stdio / sse / all |
 | `--sse-port <port>` | SSE 端口（默认：11113） |
 | `--http-port <port>` | HTTP 端口（默认：11112） |
+| `--sqlite` | 启用 SQLite 日志，使用默认路径 `./data/logs.db` |
+| `--sqlite-path <path>` | 指定 SQLite 数据库路径（自动启用 SQLite） |
+
+### SQLite 配置优先级
+
+1. **CLI 参数 `--sqlite-path`** → 使用指定路径
+2. **CLI 参数 `--sqlite`** → 使用默认路径 `./data/logs.db`（当前工作目录）
+3. **配置文件 `sqlite.dbPath`** → 使用配置文件路径
+4. **未指定** → 禁用 SQLite
+
+### 示例
+
+```bash
+# 使用 CLI 参数启用 SQLite（自动在当前目录创建）
+mcp-http-gateway --sqlite --config ./tools.json
+
+# 指定自定义 SQLite 路径
+mcp-http-gateway --sqlite-path=/var/log/mcp/logs.db --config ./tools.json
+
+# 配置文件方式（推荐）
+# 在 tools.json 中添加 sqlite 配置
+{
+  "sqlite": {
+    "enabled": true,
+    "dbPath": "/absolute/path/to/logs.db",
+    "maxDays": 30
+  }
+}
+```
+
+---
+
+## API 端点列表
+
+### 日志查询 API
+
+| 端点 | 说明 | 参数 |
+|------|------|------|
+| `/api/logs/paginated` | 分页查询请求日志 | `page`, `pageSize`, `date`, `tool`, `level` |
+| `/api/logs` | 查询最近日志 | `limit`, `date`, `tool` |
+| `/api/errors` | 查询错误日志 | `date`, `limit` |
+
+### Dashboard 数据 API
+
+| 端点 | 说明 |
+|------|------|
+| `/dashboard` | Dashboard HTML 页面 |
+| `/dashboard/json` | Dashboard 数据（JSON 格式） |
+
+### 健康检查 API
+
+| 端点 | 说明 |
+|------|------|
+| `/health` | 服务健康状态 |
+| `/health/ready` | 就绪状态（K8s Ready 探针） |
+| `/health/live` | 存活状态（K8s Live 探针） |
+
+---
+
+## 故障排查
+
+### 问题：Dashboard 显示请求但内容为空
+
+**原因**：SQLite 日志未正确记录。
+
+**检查步骤**：
+
+1. 确认 SQLite 配置已启用：
+```bash
+# 查看 stderr 输出，应该看到：
+# [启动] SQLite logging enabled
+```
+
+2. 确认数据库文件存在且有记录：
+```bash
+sqlite3 /path/to/logs.db "SELECT COUNT(*) FROM request_logs;"
+```
+
+3. 如果记录数为 0，检查日志是否有错误：
+```bash
+# 查找 SQLite 相关错误
+grep "SQLite" stderr.log
+```
+
+### 问题：端口被占用（EADDRINUSE）
+
+**解决方案**：
+
+```bash
+# 杀掉占用端口的进程
+lsof -ti:11112 | xargs kill -9
+lsof -ti:11113 | xargs kill -9
+
+# 或修改端口
+node dist/cli.js --config ./tools.json --http-port 11120
+```
+
+### 问题：MCP 连接失败（Connection closed）
+
+**常见原因**：
+
+1. **端口冲突**：检查 11112/11113 端口是否被占用
+2. **配置路径错误**：确保 `cwd` 配置正确
+3. **入口文件错误**：使用 `cli.js` 而非 `index.js`
+
+**正确配置示例**：
+
+```json
+{
+  "mcpServers": {
+    "http-gateway": {
+      "command": "node",
+      "args": ["mcp/mcp-http-gateway/dist/cli.js", "--config", "mcp/mcp-http-gateway/tools.json"],
+      "cwd": "/absolute/path/to/project/root"
+    }
+  }
+}
+```
+
+---
+
+## 更新日志
+
+### v1.1.0 (2026-04-21)
+
+- 🔧 修复 SQLite 日志记录失败问题（named parameter 缺失）
+- ✨ 新增 Dashboard 分页日志查询 API
+- 📝 完善 README 文档，添加 API 端点说明和故障排查章节
+
+### v1.0.0 (2026-04-19)
+
+- 🎉 初始版本发布
+- ✨ 熔断器、降级策略、缓存机制
+- ✨ SQLite 日志记录
+- ✨ Dashboard 监控面板
 
 ---
 

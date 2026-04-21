@@ -304,8 +304,13 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
   );
 
   // Log request to SQLite database
+  // 条件：SQLite 日志启用时记录请求到数据库
   if (config.sqlite?.enabled) {
+    logger.info('[SQLite] 记录请求到 SQLite', { toolName, sqliteEnabled: config.sqlite.enabled });
     logRequestToSqlite(toolName, tool.method, url, headers, requestBody);
+  } else {
+    // SQLite 日志禁用：输出警告日志
+    logger.warn('[SQLite] SQLite 日志禁用', { sqliteConfig: config.sqlite });
   }
 
   // Execute with retry

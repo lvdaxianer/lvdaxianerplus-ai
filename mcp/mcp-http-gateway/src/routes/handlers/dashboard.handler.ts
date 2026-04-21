@@ -174,6 +174,7 @@ interface DashboardData {
     }>;
   };
   circuitBreakers: Record<string, { state: string; failures: number; successes: number }>;
+  toolDescriptions: Record<string, string>;
   cache: { size: number; maxSize: number; ttl: number };
   logs?: Array<{
     timestamp: string;
@@ -223,9 +224,8 @@ function createFallbackHtml(data: DashboardData): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCP Gateway Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #F8FAFC; padding: 24px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F8FAFC; padding: 24px; }
     .container { max-width: 1400px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; margin-bottom: 32px; }
     .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; }

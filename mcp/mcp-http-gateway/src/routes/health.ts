@@ -43,6 +43,7 @@ export interface MetricsResponse {
 export interface DashboardData {
   metrics: MetricsResponse;
   circuitBreakers: Record<string, { state: string; failures: number; successes: number }>;
+  toolDescriptions: Record<string, string>;
   cache: { size: number; maxSize: number; ttl: number };
   logs: Array<{
     timestamp: string;
@@ -188,6 +189,9 @@ export function handleDashboard(config: Config): DashboardData {
   return {
     metrics: metricsData,
     circuitBreakers: getCircuitBreakerStatus(toolNames),
+    toolDescriptions: Object.fromEntries(
+      toolNames.map(name => [name, config.tools[name]?.description ?? ''])
+    ),
     cache: getCacheStats(),
     // 条件：从 SQLite 获取最近的请求记录（而非系统日志）
     logs: getRecentLogs(20),

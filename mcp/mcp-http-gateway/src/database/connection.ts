@@ -14,9 +14,25 @@
 import Database from 'better-sqlite3';
 import type { SQLiteLoggingConfig, BackupConfig } from '../config/types.js';
 import { logger } from '../middleware/logger.js';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 let db: Database.Database | null = null;
 let dbPath: string = './data/logs.db';
+
+/**
+ * Get default database path based on current working directory
+ * - 优先查找 ./data/logs.db，如果目录不存在则自动创建
+ *
+ * @returns Default database file path
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-21
+ */
+export function getDefaultDbPath(): string {
+  // 默认在当前工作目录下的 data 子目录
+  return join(process.cwd(), 'data', 'logs.db');
+}
 
 /**
  * Initialize SQLite database connection
@@ -31,20 +47,14 @@ export function initDatabase(config: SQLiteLoggingConfig): Database.Database {
   // Set database path from config or use default
   dbPath = config.dbPath ?? './data/logs.db';
 
-  // Ensure data directory exists
+  // Ensure data directory exists (同步创建)
   const dataDir = dbPath.split('/').slice(0, -1).join('/');
-  // 条件注释：数据目录存在时创建目录，不存在时跳过
-  if (dataDir) {
-    import('fs').then(fs => {
-      // 条件注释：数据目录不存在时创建，存在时跳过
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      } else {
-        // 数据目录已存在，无需创建
-      }
-    });
+  // 条件注释：数据目录路径存在且不存在时创建，存在时跳过
+  if (dataDir && !existsSync(dataDir)) {
+    mkdirSync(dataDir, { recursive: true });
+    logger.info('[SQLite] Created data directory', { path: dataDir });
   } else {
-    // 数据库路径在当前目录，无需创建数据目录
+    // 数据目录已存在或路径为空，无需创建
   }
 
   // Create or open database

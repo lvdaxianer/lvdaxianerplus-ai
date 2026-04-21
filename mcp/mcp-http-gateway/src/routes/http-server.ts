@@ -14,6 +14,32 @@
 import type { Config } from '../config/types.js';
 import { setStartTime } from './health.js';
 import { logger } from '../middleware/logger.js';
+import type { Server as HttpServer } from 'http';
+
+// 全局保存 HTTP server 实例，用于 graceful shutdown
+let httpServer: HttpServer | null = null;
+
+/**
+ * Close HTTP server gracefully
+ *
+ * @returns Promise that resolves when server is closed
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-21
+ */
+export function closeHttpServer(): Promise<void> {
+  return new Promise((resolve) => {
+    if (httpServer) {
+      httpServer.close(() => {
+        logger.info('[HTTP服务] HTTP server closed');
+        httpServer = null;
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
+}
 import { RouterStrategyTable, type RouteHandler } from './router.js';
 import { setCorsHeaders, sendNotFoundResponse, sendInternalServerErrorResponse } from './handlers/response.js';
 import { getHealthRoutes } from './handlers/health.handler.js';
@@ -182,6 +208,9 @@ export async function startHttpServer(options: HttpServerOptions): Promise<{ ser
       handleServerError(err, res);
     }
   });
+
+  // 保存 server 实例到全局变量，用于 graceful shutdown
+  httpServer = server;
 
   server.listen(port, () => {
     logger.info('[HTTP服务] HTTP server started', { port });

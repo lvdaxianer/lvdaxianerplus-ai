@@ -11,6 +11,7 @@
  */
 
 import type Database from 'better-sqlite3';
+import type { SQLiteLoggingConfig } from '../config/types.js';
 import { getDatabase, getDatabasePath } from './connection.js';
 import { logger } from '../middleware/logger.js';
 
@@ -21,14 +22,14 @@ interface RequestLogEntry {
   level: string;
   tool_name: string;
   message: string;
-  method?: string;
-  url?: string;
-  request_headers?: string;
-  request_body?: string;
-  response_status?: number;
-  response_headers?: string;
-  response_body?: string;
-  duration?: number;
+  method?: string | null;
+  url?: string | null;
+  request_headers?: string | null;
+  request_body?: string | null;
+  response_status?: number | null;
+  response_headers?: string | null;
+  response_body?: string | null;
+  duration?: number | null;
 }
 
 interface ErrorLogEntry {
@@ -63,10 +64,7 @@ let flushTimer: ReturnType<typeof setInterval> | null = null;
  * @author lvdaxianerplus
  * @date 2026-04-19
  */
-export function initSqliteLogger(config: {
-  batchSize?: number;
-  syncInterval?: number;
-}): void {
+export function initSqliteLogger(config: SQLiteLoggingConfig): void {
   batchSize = config.batchSize ?? 100;
   flushTimeout = config.syncInterval ?? 5000;
 
@@ -113,7 +111,12 @@ export function logRequestToSqlite(
     method,
     url,
     request_headers: JSON.stringify(headers),
-    request_body: body ? JSON.stringify(body) : undefined,
+    request_body: body ? JSON.stringify(body) : null,
+    // 条件注释：请求阶段无响应数据，设置为 null（SQLite 会存储 NULL 值）
+    response_status: null,
+    response_headers: null,
+    response_body: null,
+    duration: null,
   };
 
   requestLogBuffer.push(entry);
@@ -153,9 +156,14 @@ export function logResponseToSqlite(
     level: status >= 200 && status < 300 ? 'info' : 'warn',
     tool_name: toolName,
     message: `Response: ${status}`,
+    // 条件注释：响应阶段无请求详情，设置为 null
+    method: null,
+    url: null,
+    request_headers: null,
+    request_body: null,
     response_status: status,
-    response_headers: headers ? JSON.stringify(headers) : undefined,
-    response_body: body ? JSON.stringify(body) : undefined,
+    response_headers: headers ? JSON.stringify(headers) : null,
+    response_body: body ? JSON.stringify(body) : null,
     duration,
   };
 
@@ -283,7 +291,10 @@ function flushRequestBuffer(): void {
     insertMany([...requestLogBuffer]);
     requestLogBuffer.length = 0;
   } catch (error) {
-    logger.error('[SQLite Logger] Failed to flush request buffer', { error });
+    // 条件注释：捕获错误时将错误对象转换为可读的消息字符串
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error('[SQLite Logger] Failed to flush request buffer', { error: errorMsg, stack: errorStack });
   }
     }
   }

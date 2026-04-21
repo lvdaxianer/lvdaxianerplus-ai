@@ -13,11 +13,11 @@
 
 import { loadConfig, watchConfig, stopWatchingConfig } from './config/loader.js';
 import { startStdioServer } from './core/server.js';
-import { startHttpServer } from './routes/http-server.js';
+import { startHttpServer, closeHttpServer } from './routes/http-server.js';
 import { initCache } from './features/cache.js';
 import { setLogLevel, initFileLogging } from './middleware/logger.js';
 import { logger } from './middleware/logger.js';
-import { initDatabase, closeDatabase, cleanOldRecords } from './database/connection.js';
+import { initDatabase, closeDatabase, cleanOldRecords, getDefaultDbPath } from './database/connection.js';
 import { initSqliteLogger, stopSqliteLogger } from './database/sqlite-logger.js';
 import { initAlertLogger } from './database/alert-logger.js';
 import { initMockHandler } from './features/mock.js';
@@ -28,6 +28,8 @@ interface CliArgs {
   transport: string;
   ssePort: number;
   httpPort: number;
+  sqliteEnabled: boolean;
+  sqlitePath: string | null;
 }
 
 function parseArgs(): CliArgs {
@@ -41,6 +43,8 @@ function parseArgs(): CliArgs {
     transport: args.find((a) => a.startsWith('--transport='))?.split('=')[1] ?? 'stdio',
     ssePort: parseInt(args.find((a) => a.startsWith('--sse-port='))?.split('=')[1] ?? '11113', 10),
     httpPort: parseInt(args.find((a) => a.startsWith('--http-port='))?.split('=')[1] ?? '11112', 10),
+    sqliteEnabled: args.includes('--sqlite'),
+    sqlitePath: args.find((a) => a.startsWith('--sqlite-path='))?.split('=')[1] ?? null,
   };
 }
 
@@ -88,15 +92,25 @@ async function main(): Promise<void> {
 
   // Initialize SQLite database if enabled
   // 条件：SQLite 日志启用时初始化数据库和告警模块
-  if (config.sqlite?.enabled) {
-    initDatabase(config.sqlite);
-    initSqliteLogger(config.sqlite);
+  // 优先级：CLI 参数 > 配置文件 > 默认禁用
+  const shouldEnableSqlite = cliArgs.sqliteEnabled || cliArgs.sqlitePath || config.sqlite?.enabled;
+
+  if (shouldEnableSqlite) {
+    // 确定 SQLite 配置：CLI 参数优先，其次配置文件，最后默认
+    const sqliteConfig = {
+      enabled: true,
+      dbPath: cliArgs.sqlitePath ?? config.sqlite?.dbPath ?? getDefaultDbPath(),
+      maxDays: config.sqlite?.maxDays ?? 30,
+    };
+
+    initDatabase(sqliteConfig);
+    initSqliteLogger(sqliteConfig);
     initAlertLogger({ logDir: config.alert?.logDir ?? './logs' });
 
     // Clean old records on startup
-    const maxDays = config.sqlite.maxDays ?? 30;
+    const maxDays = sqliteConfig.maxDays;
     cleanOldRecords(maxDays);
-    logger.info('[启动] SQLite logging enabled', { dbPath: config.sqlite.dbPath });
+    logger.info('[启动] SQLite logging enabled', { dbPath: sqliteConfig.dbPath, source: cliArgs.sqlitePath ? 'CLI' : config.sqlite?.dbPath ? 'config' : 'default' });
   } else {
     // SQLite 日志禁用：跳过初始化
     logger.info('[启动] SQLite logging disabled, skipping initialization');
@@ -166,30 +180,45 @@ async function main(): Promise<void> {
  * @date 2026-04-19
  */
 function setupGracefulShutdown(): void {
-  const shutdown = () => {
+  // 保持进程活跃，防止信号立即终止
+  process.stdin.resume();
+
+  const shutdown = async () => {
     logger.info('[关闭] MCP HTTP Gateway shutting down...');
 
-    // Stop config watcher
-    stopWatchingConfig();
+    try {
+      // Stop config watcher
+      stopWatchingConfig();
 
-    // Stop SQLite logger and flush buffers
-    stopSqliteLogger();
+      // Close HTTP server first (释放端口)
+      await closeHttpServer();
 
-    // Close database
-    closeDatabase();
+      // Stop SQLite logger and flush buffers
+      stopSqliteLogger();
 
-    // Close file logger
-    logger.close();
+      // Close database
+      closeDatabase();
 
-    logger.info('[关闭] Shutdown complete');
-    process.exit(0);
+      // Close file logger
+      logger.close();
+
+      logger.info('[关闭] Shutdown complete');
+      process.exit(0);
+    } catch (error) {
+      logger.error('[关闭] Shutdown error', { error });
+      process.exit(1);
+    }
   };
 
   // Handle SIGINT (Ctrl+C)
-  process.on('SIGINT', shutdown);
+  process.on('SIGINT', () => {
+    shutdown();
+  });
 
   // Handle SIGTERM
-  process.on('SIGTERM', shutdown);
+  process.on('SIGTERM', () => {
+    shutdown();
+  });
 }
 
 main().catch((error) => {

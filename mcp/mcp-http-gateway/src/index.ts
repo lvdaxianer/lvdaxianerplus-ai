@@ -61,10 +61,7 @@ async function main(): Promise<void> {
   // Initialize SQLite database if enabled
   if (config.sqlite?.enabled) {
     initDatabase(config.sqlite);
-    initSqliteLogger({
-      batchSize: 100,
-      syncInterval: 5000,
-    });
+    initSqliteLogger(config.sqlite);
     logger.info('SQLite logging enabled', { dbPath: config.sqlite.dbPath });
   }
 
