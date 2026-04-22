@@ -17,6 +17,7 @@ import { startHttpServer, closeHttpServer } from './routes/http-server.js';
 import { initCache } from './features/cache.js';
 import { initRateLimit } from './features/rate-limit.js';
 import { initConcurrency } from './features/concurrency.js';
+import { initTrace } from './features/trace.js';
 import { setLogLevel, initFileLogging } from './middleware/logger.js';
 import { logger } from './middleware/logger.js';
 import { initDatabase, closeDatabase, cleanOldRecords, getDefaultDbPath } from './database/connection.js';
@@ -24,7 +25,7 @@ import { initSqliteLogger, stopSqliteLogger } from './database/sqlite-logger.js'
 import { initAlertLogger } from './database/alert-logger.js';
 import { initMockHandler } from './features/mock.js';
 import { loadToolCacheConfigs } from './routes/handlers/tool-cache.handler.js';
-import { DEFAULT_RATE_LIMIT, DEFAULT_CONCURRENCY } from './config/types.js';
+import { DEFAULT_RATE_LIMIT, DEFAULT_CONCURRENCY, DEFAULT_TRACE } from './config/types.js';
 
 interface CliArgs {
   configPath: string;
@@ -156,6 +157,19 @@ async function main(): Promise<void> {
     enabled: concurrencyConfig.enabled,
     maxConcurrent: concurrencyConfig.maxConcurrent,
     queueSize: concurrencyConfig.queueSize,
+  });
+
+  // Initialize Trace handler
+  // 条件：链路追踪配置存在时初始化追踪管理器
+  // 使用默认配置合并用户配置
+  const traceConfig = {
+    ...DEFAULT_TRACE,
+    ...config.trace,
+  };
+  initTrace(traceConfig);
+  logger.info('[启动] Trace initialized', {
+    enabled: traceConfig.enabled,
+    headerName: traceConfig.headerName,
   });
 
   logger.info('[启动] MCP HTTP Gateway starting...');

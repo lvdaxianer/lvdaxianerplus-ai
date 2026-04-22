@@ -51,6 +51,7 @@ export {
   RateLimitConfig,
   ToolRateLimitConfig,
   ConcurrencyConfig,
+  TraceConfig,
 } from './server-config-types.js';
 
 export {
@@ -92,6 +93,7 @@ import {
   AuditConfig,
   RateLimitConfig,
   ConcurrencyConfig,
+  TraceConfig,
 } from './server-config-types.js';
 import { AttemptTrackingConfig, CallHintTemplateConfig } from './tracking-types.js';
 import { FallbackConfig } from './fallback-types.js';
@@ -109,6 +111,8 @@ import { FallbackConfig } from './fallback-types.js';
  * @param circuitBreaker - 熔断器配置
  * @param cache - 全局缓存配置
  * @param rateLimit - 限流配置
+ * @param concurrency - 并发控制配置
+ * @param trace - 链路追踪配置
  * @param logging - 日志配置
  * @param metrics - 指标配置
  * @param healthCheck - 健康检查配置
@@ -139,6 +143,7 @@ export interface Config {
   cache?: CacheConfig;
   rateLimit?: RateLimitConfig;
   concurrency?: ConcurrencyConfig;
+  trace?: TraceConfig;
   logging?: LoggingConfig;
   metrics?: MetricsConfig;
   healthCheck?: HealthCheckConfig;
@@ -381,4 +386,18 @@ export const DEFAULT_CONCURRENCY: ConcurrencyConfig = {
   maxConcurrent: 50,
   queueSize: 100,
   queueTimeout: 30000,
+};
+
+/**
+ * 默认链路追踪配置
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export const DEFAULT_TRACE: TraceConfig = {
+  enabled: true,
+  headerName: 'X-Trace-ID',
+  generateShort: false,
+  includeInResponse: true,
+  propagateToBackend: true,
 };

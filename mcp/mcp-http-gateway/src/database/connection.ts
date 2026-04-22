@@ -229,6 +229,29 @@ function createTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_tool_cache_configs_enabled ON tool_cache_configs(enabled);
   `);
 
+  // Trace logs table - 链路追踪日志
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS trace_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      trace_id TEXT NOT NULL UNIQUE,
+      tool_name TEXT NOT NULL,
+      method TEXT NOT NULL,
+      url TEXT NOT NULL,
+      start_time INTEGER NOT NULL,
+      duration INTEGER NOT NULL,
+      status_code INTEGER NOT NULL,
+      success INTEGER NOT NULL,
+      error_message TEXT,
+      parent_trace_id TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_trace_logs_id ON trace_logs(trace_id);
+    CREATE INDEX IF NOT EXISTS idx_trace_logs_tool ON trace_logs(tool_name);
+    CREATE INDEX IF NOT EXISTS idx_trace_logs_time ON trace_logs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_trace_logs_parent ON trace_logs(parent_trace_id);
+  `);
+
   logger.info('[SQLite] Tables created successfully');
 }
 

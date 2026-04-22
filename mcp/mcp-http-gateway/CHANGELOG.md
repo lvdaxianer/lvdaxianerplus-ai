@@ -23,8 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 支持 omit 字段排除、flatten 对象展平、defaultValues 默认值填充
   - 支持 expressions 表达式转换、addFields 新增字段
 
+- ✨ **链路追踪 ID（Tracing）**
+  - 新增 trace.ts 链路追踪模块
+  - 生成唯一 Trace ID（UUID 或短 ID）
+  - Trace ID 在请求生命周期中传递
+  - 日志中包含 Trace ID
+  - HTTP 响应头返回 Trace ID（X-Trace-ID）
+  - 向后端传递 Trace ID
+  - Dashboard API：`/api/trace/:id`、`/api/trace/recent`、`/api/trace/tool/:name`、`/api/trace/stats`
+  - 新增 trace_logs 数据库表
+  - 新增 TraceConfig 配置类型
+
 - 📝 **文档更新**
-  - 更新 README 功能表格，添加模板转换相关条目
+  - 更新 README 功能表格，添加模板转换和链路追踪相关条目
   - 更新 CHANGELOG 版本记录
 
 ---

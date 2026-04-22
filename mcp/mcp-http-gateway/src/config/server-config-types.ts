@@ -368,3 +368,25 @@ export interface ConcurrencyConfig {
   queueSize?: number;
   queueTimeout?: number;
 }
+
+/**
+ * 链路追踪配置
+ *
+ * 定义请求追踪策略，用于分布式追踪和日志关联。
+ *
+ * @param enabled - 是否启用链路追踪（默认 true）
+ * @param headerName - Trace ID HTTP 头名称（默认 X-Trace-ID）
+ * @param generateShort - 是否生成短 ID（默认 false，使用完整 UUID）
+ * @param includeInResponse - 是否在响应头中返回 Trace ID（默认 true）
+ * @param propagateToBackend - 是否向后端传递 Trace ID（默认 true）
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export interface TraceConfig {
+  enabled: boolean;
+  headerName?: string;
+  generateShort?: boolean;
+  includeInResponse?: boolean;
+  propagateToBackend?: boolean;
+}
