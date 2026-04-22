@@ -34,6 +34,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 新增 trace_logs 数据库表
   - 新增 TraceConfig 配置类型
 
+- ✨ **增强健康检查（Health Check）**
+  - 新增 K8s 兼容健康检查端点
+  - `/health` - 综合健康检查（返回 7 个组件状态）
+  - `/health/detail` - 详细组件状态（含更多指标）
+  - `/health/ready` - K8s 就绪探针（检查依赖服务）
+  - `/health/live` - K8s 存活探针（基本存活检查）
+  - `/health/startup` - K8s 启动探针（慢启动容器）
+  - 检查组件：config、database、circuitBreakers、cache、rateLimit、concurrency、trace
+  - 健康状态：healthy、unhealthy、degraded
+  - 新增 ComponentStatus、HealthCheckResponse、DetailedHealthResponse 类型
+  - 新增 health.handler.ts 路由处理器
+
 - 📝 **文档更新**
   - 更新 README 功能表格，添加模板转换和链路追踪相关条目
   - 更新 CHANGELOG 版本记录

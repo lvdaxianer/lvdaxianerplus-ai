@@ -509,9 +509,11 @@ npx -y mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools
 
 | 端点 | 说明 |
 |------|------|
-| `/health` | 服务健康状态 |
-| `/health/ready` | 就绪状态（K8s Ready） |
-| `/health/live` | 存活状态（K8s Live） |
+| `/health` | 服务健康状态（7 个组件） |
+| `/health/detail` | 详细组件状态（含更多指标） |
+| `/health/ready` | 就绪状态（K8s Ready Probe） |
+| `/health/live` | 存活状态（K8s Live Probe） |
+| `/health/startup` | 启动状态（K8s Startup Probe） |
 
 ---
 
