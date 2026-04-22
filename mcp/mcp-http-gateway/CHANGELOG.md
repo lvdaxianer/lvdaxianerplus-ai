@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 返回给 MCP 客户端时拼接：`beforeDescription + description + afterDescription`
   - Dashboard 不显示这两个字段，仅显示 `description`
 
+- ✨ **请求限流（Rate Limit）**
+  - 令牌桶算法（Token Bucket）：允许突发流量
+  - 滑动窗口算法（Sliding Window）：精确控制速率
+  - 全局限流配置：`rateLimit.globalLimit`（默认 100/秒）
+  - 工具级限流配置：`rateLimit.toolLimits`（优先级高于全局）
+  - Dashboard API：`/api/rate-limit`、`/api/rate-limit/tools`
+
 ### Fixed
 
 - 🔧 **缓存 TTL 修复**：TTL=0 永不过期

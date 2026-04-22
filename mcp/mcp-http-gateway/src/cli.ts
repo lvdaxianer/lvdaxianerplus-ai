@@ -15,6 +15,7 @@ import { loadConfig, watchConfig, stopWatchingConfig } from './config/loader.js'
 import { startStdioServer, startSseServer } from './core/server.js';
 import { startHttpServer, closeHttpServer } from './routes/http-server.js';
 import { initCache } from './features/cache.js';
+import { initRateLimit } from './features/rate-limit.js';
 import { setLogLevel, initFileLogging } from './middleware/logger.js';
 import { logger } from './middleware/logger.js';
 import { initDatabase, closeDatabase, cleanOldRecords, getDefaultDbPath } from './database/connection.js';
@@ -22,6 +23,7 @@ import { initSqliteLogger, stopSqliteLogger } from './database/sqlite-logger.js'
 import { initAlertLogger } from './database/alert-logger.js';
 import { initMockHandler } from './features/mock.js';
 import { loadToolCacheConfigs } from './routes/handlers/tool-cache.handler.js';
+import { DEFAULT_RATE_LIMIT } from './config/types.js';
 
 interface CliArgs {
   configPath: string;
@@ -126,6 +128,20 @@ async function main(): Promise<void> {
     // 无 Mock 配置：跳过初始化
     logger.info('[启动] Mock not configured, skipping initialization');
   }
+
+  // Initialize Rate Limit handler
+  // 条件：限流配置存在时初始化限流管理器
+  // 使用默认配置合并用户配置
+  const rateLimitConfig = {
+    ...DEFAULT_RATE_LIMIT,
+    ...config.rateLimit,
+  };
+  initRateLimit(rateLimitConfig);
+  logger.info('[启动] Rate limit initialized', {
+    enabled: rateLimitConfig.enabled,
+    type: rateLimitConfig.type,
+    globalLimit: rateLimitConfig.globalLimit,
+  });
 
   logger.info('[启动] MCP HTTP Gateway starting...');
   logger.info('[启动] Loaded tools', { count: Object.keys(config.tools).length });

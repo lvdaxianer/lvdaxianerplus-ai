@@ -54,6 +54,7 @@ import { getAuditRoutes } from './handlers/audit.handler.js';
 import { getDashboardRoutes } from './handlers/dashboard.handler.js';
 import { getFallbackConditionsRoutes } from './handlers/fallback-conditions.handler.js';
 import { getToolCacheRoutes, loadToolCacheConfigs } from './handlers/tool-cache.handler.js';
+import { getRateLimitRoutes } from './handlers/rate-limit.handler.js';
 
 /**
  * HTTP 服务器配置选项
@@ -90,6 +91,7 @@ function registerAllRoutes(router: RouterStrategyTable, config: Config): void {
   router.registerAll(getAuditRoutes());
   router.registerAll(getFallbackConditionsRoutes());
   router.registerAll(getToolCacheRoutes());
+  router.registerAll(getRateLimitRoutes());
 
   // 加载工具缓存配置
   // 条件注释：传入 config 参数，首次启动时同步配置文件到数据库

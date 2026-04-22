@@ -47,6 +47,8 @@ export {
   BackupConfig,
   AlertConfig,
   AuditConfig,
+  RateLimitConfig,
+  ToolRateLimitConfig,
 } from './server-config-types.js';
 
 export {
@@ -86,6 +88,7 @@ import {
   BackupConfig,
   AlertConfig,
   AuditConfig,
+  RateLimitConfig,
 } from './server-config-types.js';
 import { AttemptTrackingConfig, CallHintTemplateConfig } from './tracking-types.js';
 import { FallbackConfig } from './fallback-types.js';
@@ -102,6 +105,7 @@ import { FallbackConfig } from './fallback-types.js';
  * @param retry - 全局重试配置
  * @param circuitBreaker - 熔断器配置
  * @param cache - 全局缓存配置
+ * @param rateLimit - 限流配置
  * @param logging - 日志配置
  * @param metrics - 指标配置
  * @param healthCheck - 健康检查配置
@@ -120,7 +124,7 @@ import { FallbackConfig } from './fallback-types.js';
  * @param callHintTemplate - 调用提示模板配置
  *
  * @author lvdaxianerplus
- * @date 2026-04-19
+ * @date 2026-04-22
  */
 export interface Config {
   baseUrl: string;
@@ -130,6 +134,7 @@ export interface Config {
   retry?: RetryConfig;
   circuitBreaker?: CircuitBreakerConfig;
   cache?: CacheConfig;
+  rateLimit?: RateLimitConfig;
   logging?: LoggingConfig;
   metrics?: MetricsConfig;
   healthCheck?: HealthCheckConfig;
@@ -347,4 +352,16 @@ export const DEFAULT_ALERT: AlertConfig = {
 export const DEFAULT_AUDIT: AuditConfig = {
   enabled: true,
   maskSensitiveFields: true,
+};
+
+/**
+ * 默认限流配置
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export const DEFAULT_RATE_LIMIT: RateLimitConfig = {
+  enabled: false,
+  type: 'tokenBucket',
+  globalLimit: 100,
 };

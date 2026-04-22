@@ -12,6 +12,8 @@
 | **容灾机制** | 熔断器 (Circuit Breaker) | 防止故障扩散，CLOSED/OPEN/HALF_OPEN 状态流转 |
 | **容灾机制** | 降级策略 (Fallback) | 缓存兜底 + Mock 兜底，确保用户获得响应 |
 | **容灾机制** | 尝试次数限制 | 限制可选参数工具的尝试次数，避免浪费 token |
+| **流量控制** | 请求限流 (Rate Limit) | 令牌桶/滑动窗口算法，防止后端被压垮 |
+| **流量控制** | 工具级限流 | 单个工具独立限流配置，优先级高于全局 |
 | **缓存机制** | LRU 缓存 | 缓存 GET 请求响应，支持 TTL 和工具级配置 |
 | **缓存机制** | TTL=0 永不过期 | 用于降级场景，缓存数据永久保留 |
 | **Mock 模式** | 全局 Mock | 全局开关，所有请求返回 Mock 数据 |
@@ -341,6 +343,43 @@ npx -y mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools
 
 ---
 
+### 10. 请求限流（Rate Limit）
+
+防止后端服务被大量 MCP 请求压垮，保护系统稳定性。
+
+**配置示例**：
+
+```json
+{
+  "rateLimit": {
+    "enabled": true,
+    "type": "tokenBucket",        // 或 "slidingWindow"
+    "globalLimit": 100,            // 全局每秒最大请求数
+    "toolLimits": {
+      "getUser": { "limit": 10, "window": 1000 },  // 工具级限流
+      "createOrder": { "limit": 5, "window": 1000 }
+    }
+  }
+}
+```
+
+**算法对比**：
+
+| 算法 | 特点 | 适用场景 |
+|------|------|----------|
+| **令牌桶** | 允许突发流量，平滑处理 | 请求波动大、API 容错高 |
+| **滑动窗口** | 精确限流，无突发 | 严格限流、防止超载 |
+
+**Dashboard API**：
+
+| 端点 | 说明 |
+|------|------|
+| `/api/rate-limit` | 限流全局状态（剩余令牌、拒绝次数） |
+| `/api/rate-limit/tools` | 所有工具级限流状态 |
+| `/api/rate-limit/tools/:name` | 单个工具限流状态 |
+
+---
+
 ## CLI 参数
 
 | 参数 | 说明 |
@@ -407,6 +446,14 @@ npx -y mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools
 | `/api/mock` | 全局 Mock 开关 |
 | `/api/tools` | 工具列表（含 Mock 状态） |
 | `/api/tools/:name/mock` | 工具级 Mock 配置 |
+
+### 限流管理 API
+
+| 端点 | 说明 |
+|------|------|
+| `/api/rate-limit` | 限流全局状态 |
+| `/api/rate-limit/tools` | 所有工具级限流状态 |
+| `/api/rate-limit/tools/:name` | 单个工具限流状态 |
 
 ### 健康检查 API
 

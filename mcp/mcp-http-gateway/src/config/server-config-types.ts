@@ -308,3 +308,43 @@ export interface AuditConfig {
   enabled: boolean;
   maskSensitiveFields?: boolean;
 }
+
+/**
+ * 工具级限流配置
+ *
+ * 定义单个工具的限流策略。
+ *
+ * @param limit - 时间窗口内最大请求数
+ * @param window - 时间窗口（毫秒，默认 1000）
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export interface ToolRateLimitConfig {
+  limit: number;
+  window?: number;
+}
+
+/**
+ * 全局限流配置
+ *
+ * 定义请求限流策略，防止后端服务被压垮。
+ *
+ * 限流算法：
+ * - tokenBucket: 令牌桶算法，允许突发流量
+ * - slidingWindow: 滑动窗口算法，精确控制速率
+ *
+ * @param enabled - 是否启用限流（默认 false）
+ * @param type - 限流算法类型：tokenBucket/slidingWindow（默认 tokenBucket）
+ * @param globalLimit - 全局每秒最大请求数（默认 100）
+ * @param toolLimits - 工具级限流配置映射（优先级高于全局配置）
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export interface RateLimitConfig {
+  enabled: boolean;
+  type?: 'tokenBucket' | 'slidingWindow';
+  globalLimit?: number;
+  toolLimits?: Record<string, ToolRateLimitConfig>;
+}

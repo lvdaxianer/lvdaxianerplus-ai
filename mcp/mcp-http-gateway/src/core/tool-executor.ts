@@ -17,6 +17,7 @@ import type { Config, ToolConfig } from '../config/types.js';
 import { executeTool } from './executor.js';
 import { logger } from '../middleware/logger.js';
 import { recordMetric } from '../middleware/metrics.js';
+import { checkRateLimit } from '../features/rate-limit.js';
 import {
   recordAttempt,
   clearAttempt,
@@ -93,6 +94,24 @@ export async function executeToolCall(
   attemptConfig: AttemptConfigForExecution,
   maxAttempts: number
 ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
+  // ===== 步骤 0：限流检查 =====
+  // 条件注释：限流检查失败时直接返回错误，不执行请求
+  const rateLimitAllowed = checkRateLimit(name);
+
+  if (!rateLimitAllowed) {
+    // ----- 限流拒绝处理 -----
+    // 记录限流拒绝日志
+    logger.warn('[工具调用] 限流拒绝', { toolName: name });
+
+    // 记录指标（限流拒绝作为错误记录）
+    recordMetric(name, 'error');
+
+    // 返回限流拒绝错误响应
+    return createErrorResponse('请求被限流拒绝，请稍后重试');
+  } else {
+    // 限流允许，继续执行
+  }
+
   // ===== 步骤 1：记录开始时间 =====
   const startTime = Date.now();
 
