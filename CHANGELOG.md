@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- 添加 CONFIG.md 到 npm 发布文件列表 (387d99b)
+
+- 添加 CONFIG.md 配置参数详解文档 (84b9292)
+
+### Changed
+- 修复 rename 字段删除原字段失败的问题 (a113d73)
+
+- 添加新功能的100条测试故事线 (4e27149)
+
+### Changed
+- 实现灰度发布模块 (9e4f400)
+
+- 实现配置版本控制模块 (6eafde6)
+
+### Changed
+- 实现告警通知模块 (9d52cb9)
+
+- 增强 K8s 健康检查端点 (307bf83)
+
+### Changed
+- 实现链路追踪 ID (Tracing) (72c9fb1)
+
+- 增强请求/响应转换模板 (ed50a51)
+
+### Changed
+- 添加超时监控 Dashboard API (915224c)
+
+- P0-2 实现并发控制（Concurrency Control） (04da3ba)
+
+### Changed
+- P0-1 实现请求限流（Rate Limit） (26fd59b)
+
+- 添加工具描述增强字段 beforeDescription 和 afterDescription (db61414)
+
+### Changed
+- 添加功能概览表格，详细说明转发/容灾/日志/降级等能力 (644d687)
+
+- CHANGELOG 版本同步 (b36443d)
+
+### Changed
 - 最终版本记录同步 (1ebd396)
 
 - 同步版本变更记录 (5531c1e)
