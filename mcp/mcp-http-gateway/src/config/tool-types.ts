@@ -52,7 +52,9 @@ export interface ResponseTransformConfig {
  * 定义单个 MCP 工具的完整配置。
  * 包括 HTTP 请求参数、认证、超时、Mock 等。
  *
+ * @param beforeDescription - 工具描述前缀（可选，返回给 LLM 时拼接到 description 之前，Dashboard 不显示）
  * @param description - 工具描述（供 LLM 理解用途）
+ * @param afterDescription - 工具描述后缀（可选，返回给 LLM 时拼接到 description 之后，Dashboard 不显示）
  * @param method - HTTP 方法：GET/POST/PUT/DELETE/PATCH
  * @param path - API 路径（支持 {param} 路径参数，或完整 URL）
  * @param token - Token 引用键（引用 tokens 配置中的 key）
@@ -69,10 +71,12 @@ export interface ResponseTransformConfig {
  * @param mock - Mock 配置（用于测试）
  *
  * @author lvdaxianerplus
- * @date 2026-04-19
+ * @date 2026-04-22
  */
 export interface ToolConfig {
+  beforeDescription?: string;
   description: string;
+  afterDescription?: string;
   method: string;
   path: string;
   token?: string;

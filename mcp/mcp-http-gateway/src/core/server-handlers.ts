@@ -120,13 +120,22 @@ export function registerListToolsHandler(server: Server, config: Config): void {
     // ===== 步骤 2：构建工具列表 =====
     // 遍历所有工具配置，生成 MCP 工具定义
     const tools = Object.entries(config.tools).map(([name, tool]) => {
+      // 拼接完整描述：beforeDescription + description + afterDescription
+      // beforeDescription 和 afterDescription 是可选字段，用于向 LLM 提供额外上下文
+      // Dashboard 不显示这两个字段，仅用于 MCP 工具返回
+      const fullDescription = [
+        tool.beforeDescription || '',
+        tool.description,
+        tool.afterDescription || ''
+      ].filter(Boolean).join('\n');
+
       // 生成调用提示
       // 根据工具参数类型选择对应的步骤描述
       const hint = generateCallHint(tool, hintConfig, maxAttempts);
 
       // 添加提示到描述
       // 如果描述已包含【调用提示】标记则跳过添加
-      const enhancedDescription = addCallHintToDescription(tool.description, hint);
+      const enhancedDescription = addCallHintToDescription(fullDescription, hint);
 
       // 构建输入 Schema
       // 提取路径参数、查询参数、Body 参数生成 JSON Schema
@@ -134,7 +143,7 @@ export function registerListToolsHandler(server: Server, config: Config): void {
 
       // 返回 MCP 工具定义结构
       // name: 工具名称（唯一标识）
-      // description: 工具描述（供 LLM 理解用途）
+      // description: 工具描述（供 LLM 理解用途，已拼接 before/after）
       // inputSchema: 输入定义（供 LLM 理解参数）
       return {
         name,

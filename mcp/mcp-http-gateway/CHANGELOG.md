@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 失败时返回 `metadata` 字段（尝试次数、剩余次数、建议）
   - 成功后清除尝试记录
 
+- ✨ **工具描述增强字段**：`beforeDescription` 和 `afterDescription`
+  - 可选字段，用于向 LLM 提供额外上下文
+  - 返回给 MCP 客户端时拼接：`beforeDescription + description + afterDescription`
+  - Dashboard 不显示这两个字段，仅显示 `description`
+
 ### Fixed
 
 - 🔧 **缓存 TTL 修复**：TTL=0 永不过期
