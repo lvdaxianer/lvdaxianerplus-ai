@@ -33,17 +33,51 @@ export interface ParameterDef {
 /**
  * 响应转换配置
  *
- * 用于对工具返回结果进行字段筛选和重命名。
+ * 用于对工具返回结果进行字段筛选、重命名和模板转换。
  *
- * @param pick - 包含的字段列表（可选）
- * @param rename - 字段重命名映射（可选）
+ * @param pick - 包含的字段路径列表（支持嵌套路径如 data.user.name）
+ * @param rename - 字段重命名映射（支持嵌套路径）
+ * @param template - 响应模板（支持 {param}、{timestamp} 等占位符）
+ * @param expressions - 表达式转换映射（key 为新字段名，value 为表达式）
+ * @param omit - 排除的字段路径列表（与 pick 相反）
+ * @param defaultValues - 默认值映射（字段路径 -> 默认值）
+ * @param flatten - 是否展平嵌套对象（默认 false）
+ * @param flattenPrefix - 展平时的前缀分隔符（默认 '_'）
  *
  * @author lvdaxianerplus
- * @date 2026-04-18
+ * @date 2026-04-22
  */
 export interface ResponseTransformConfig {
   pick?: string[];
   rename?: Record<string, string>;
+  template?: string;
+  expressions?: Record<string, string>;
+  omit?: string[];
+  defaultValues?: Record<string, unknown>;
+  flatten?: boolean;
+  flattenPrefix?: string;
+}
+
+/**
+ * 请求转换配置
+ *
+ * 用于对请求参数进行增强转换。
+ *
+ * @param template - 请求模板（支持 {param}、{{expression}} 等）
+ * @param expressions - 表达式转换映射
+ * @param defaultValues - 默认值映射
+ * @param rename - 参数名重命名映射
+ * @param addFields - 新增字段配置（key 为字段名，value 为表达式）
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export interface RequestTransformConfig {
+  template?: string;
+  expressions?: Record<string, string>;
+  defaultValues?: Record<string, unknown>;
+  rename?: Record<string, string>;
+  addFields?: Record<string, string>;
 }
 
 /**
@@ -59,11 +93,12 @@ export interface ResponseTransformConfig {
  * @param path - API 路径（支持 {param} 路径参数，或完整 URL）
  * @param token - Token 引用键（引用 tokens 配置中的 key）
  * @param authType - 认证类型：bearer/basic/apiKey
- * @param headers - 自定义 HTTP 请求头
+ * @param headers - 自定义 HTTP 请求头（支持模板占位符）
  * @param timeout - 超时时间覆盖（毫秒）
  * @param retry - 重试配置覆盖
  * @param cache - 缓存配置覆盖
- * @param requestTransform - 请求参数名称映射
+ * @param requestTransform - 请求参数名称映射（旧版，兼容）
+ * @param requestTransformConfig - 请求转换配置（新版，增强）
  * @param responseTransform - 响应转换配置
  * @param idempotencyKey - 幂等性键请求头名称
  * @param body - POST/PUT 请求体参数定义
@@ -86,6 +121,7 @@ export interface ToolConfig {
   retry?: RetryConfig;
   cache?: CacheConfig;
   requestTransform?: Record<string, string>;
+  requestTransformConfig?: RequestTransformConfig;
   responseTransform?: ResponseTransformConfig;
   idempotencyKey?: string;
   body?: Record<string, ParameterDef>;

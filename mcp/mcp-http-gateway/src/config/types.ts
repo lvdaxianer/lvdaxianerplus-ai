@@ -20,6 +20,7 @@ export {
   // 工具配置类型
   ParameterDef,
   ResponseTransformConfig,
+  RequestTransformConfig,
   ToolConfig,
   RetryConfig,
   CacheConfig,

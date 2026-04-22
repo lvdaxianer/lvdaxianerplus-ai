@@ -3,21 +3,21 @@
  *
  * Features:
  * - Static mock responses
- * - Dynamic template responses
+ * - Dynamic template responses (uses template-engine)
  * - Dynamic field-based data generation
  * - Simulated delay
  * - Mock data management
  * - SQLite persistence
  *
  * @author lvdaxianerplus
- * @date 2026-04-19
+ * @date 2026-04-22
  */
 
 import type { MockToolConfig, MockConfig } from '../config/types.js';
 import { logger } from '../middleware/logger.js';
-import { v4 as uuidv4 } from 'uuid';
 import { generateDynamicResponse } from './mock-generator.js';
 import { getDatabase } from '../database/connection.js';
+import { processTemplate, processObjectTemplate, type TemplateContext } from './template-engine.js';
 
 // Global mock enabled flag
 let globalMockEnabled = false;
@@ -177,38 +177,6 @@ export function isMockEnabled(toolName: string, toolMockConfig?: MockToolConfig)
 }
 
 /**
- * Process template placeholders
- *
- * Supported placeholders:
- * - {param} - Replace with request parameter value
- * - {timestamp} - Current timestamp
- * - {uuid} - Generate UUID
- * - {random} - Random number
- *
- * @param template - Response template
- * @param args - Request arguments
- * @returns Processed template
- *
- * @author lvdaxianerplus
- * @date 2026-04-19
- */
-function processTemplate(template: string, args: Record<string, unknown>): string {
-  let result = template;
-
-  // Replace parameter placeholders
-  for (const [key, value] of Object.entries(args)) {
-    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value));
-  }
-
-  // Replace built-in placeholders
-  result = result.replace(/\{timestamp\}/g, new Date().toISOString());
-  result = result.replace(/\{uuid\}/g, uuidv4());
-  result = result.replace(/\{random\}/g, String(Math.floor(Math.random() * 10000)));
-
-  return result;
-}
-
-/**
  * Generate mock response
  *
  * @param toolName - Tool name
@@ -217,7 +185,7 @@ function processTemplate(template: string, args: Record<string, unknown>): strin
  * @returns Mock response data
  *
  * @author lvdaxianerplus
- * @date 2026-04-19
+ * @date 2026-04-22
  */
 export function generateMockResponse(
   toolName: string,
@@ -245,14 +213,15 @@ export function generateMockResponse(
 
   // Get response data - priority: dynamicConfig > responseTemplate > response
   let response: unknown;
+  const context: TemplateContext = { args };
 
   // Condition: dynamicConfig enabled - generate dynamic data
   if (mockConfig.dynamicConfig?.enabled) {
     response = generateDynamicResponse(mockConfig.dynamicConfig, args);
     logger.info('[Mock Handler] Generated dynamic response', { toolName });
   } else if (mockConfig.responseTemplate) {
-    // Condition: responseTemplate provided - process template
-    const processedTemplate = processTemplate(mockConfig.responseTemplate, args);
+    // Condition: responseTemplate provided - use template engine
+    const processedTemplate = processTemplate(mockConfig.responseTemplate, context);
     try {
       response = JSON.parse(processedTemplate);
     } catch {
@@ -260,8 +229,8 @@ export function generateMockResponse(
       response = processedTemplate;
     }
   } else if (mockConfig.response) {
-    // Condition: static response provided - process placeholders in object
-    response = processResponseObject(mockConfig.response, args);
+    // Condition: static response provided - use template engine for object
+    response = processObjectTemplate(mockConfig.response, context);
   } else {
     // Default: empty response
     response = { success: true, mocked: true };
@@ -284,36 +253,6 @@ export function generateMockResponse(
     headers,
     delay,
   };
-}
-
-/**
- * Process response object for placeholders
- *
- * @param obj - Response object
- * @param args - Request arguments
- * @returns Processed object
- *
- * @author lvdaxianerplus
- * @date 2026-04-19
- */
-function processResponseObject(obj: unknown, args: Record<string, unknown>): unknown {
-  if (typeof obj === 'string') {
-    return processTemplate(obj, args);
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(item => processResponseObject(item, args));
-  }
-
-  if (typeof obj === 'object' && obj !== null) {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[key] = processResponseObject(value, args);
-    }
-    return result;
-  }
-
-  return obj;
 }
 
 /**
@@ -541,7 +480,7 @@ function reloadMockConfigFromDatabase(toolName: string): void {
  * @returns Mock fallback data
  *
  * @author lvdaxianerplus
- * @date 2026-04-19
+ * @date 2026-04-22
  */
 export function executeMockFallback(
   toolName: string,
@@ -559,8 +498,9 @@ export function executeMockFallback(
 
   // Condition: use static response only (fallback needs stable data)
   if (mockConfig.response) {
-    // Process response object for placeholders
-    const processedResponse = processResponseObject(mockConfig.response, args);
+    // Use template engine for object processing
+    const context: TemplateContext = { args };
+    const processedResponse = processObjectTemplate(mockConfig.response, context);
     logger.info('[Mock Fallback] Using static mock fallback', { toolName });
     return processedResponse;
   }

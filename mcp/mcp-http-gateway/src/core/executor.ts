@@ -258,10 +258,8 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
   const queryParamNames = tool.queryParams ? Object.keys(tool.queryParams) : [];
   const { pathParams, queryParams } = separateParams(args, pathParamNames, queryParamNames);
 
-  // Transform request
-  const transformedArgs = tool.requestTransform
-    ? transformRequest(args, tool.requestTransform)
-    : args;
+  // Transform request (支持旧版 requestTransform 和新版 requestTransformConfig)
+  const transformedArgs = transformRequest(args, tool.requestTransform, tool.requestTransformConfig);
 
   // Build URL
   const url = buildUrl(config.baseUrl, tool.path, pathParams, queryParams);

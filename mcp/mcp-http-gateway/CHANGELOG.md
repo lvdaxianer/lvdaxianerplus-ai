@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-04-22
+
+### Added
+
+- ✨ **增强请求/响应转换模板**
+  - 新增 template-engine.ts 模板引擎
+  - 变量替换：`{param}`、`{timestamp}`、`{uuid}`、`{random}`、`{date}`、`{now}`
+  - 嵌套字段访问：`{data.user.name}`、`{items[0].id}`
+  - 表达式计算：`{{value + 10}}`、`{{value * 2}}`
+  - 默认值语法：`{value|default}`、`{value ?? 'default'}`
+  - 日期部分变量：`{year}`、`{month}`、`{day}`、`{hour}`、`{minute}`、`{second}`
+  - 新增 RequestTransformConfig 配置类型
+  - 增强 ResponseTransformConfig 配置类型
+  - 支持 omit 字段排除、flatten 对象展平、defaultValues 默认值填充
+  - 支持 expressions 表达式转换、addFields 新增字段
+
+- 📝 **文档更新**
+  - 更新 README 功能表格，添加模板转换相关条目
+  - 更新 CHANGELOG 版本记录
+
+---
+
 ## [1.2.0] - 2026-04-22
 
 ### Added
