@@ -49,6 +49,7 @@ export {
   AuditConfig,
   RateLimitConfig,
   ToolRateLimitConfig,
+  ConcurrencyConfig,
 } from './server-config-types.js';
 
 export {
@@ -89,6 +90,7 @@ import {
   AlertConfig,
   AuditConfig,
   RateLimitConfig,
+  ConcurrencyConfig,
 } from './server-config-types.js';
 import { AttemptTrackingConfig, CallHintTemplateConfig } from './tracking-types.js';
 import { FallbackConfig } from './fallback-types.js';
@@ -135,6 +137,7 @@ export interface Config {
   circuitBreaker?: CircuitBreakerConfig;
   cache?: CacheConfig;
   rateLimit?: RateLimitConfig;
+  concurrency?: ConcurrencyConfig;
   logging?: LoggingConfig;
   metrics?: MetricsConfig;
   healthCheck?: HealthCheckConfig;
@@ -364,4 +367,17 @@ export const DEFAULT_RATE_LIMIT: RateLimitConfig = {
   enabled: false,
   type: 'tokenBucket',
   globalLimit: 100,
+};
+
+/**
+ * 默认并发控制配置
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export const DEFAULT_CONCURRENCY: ConcurrencyConfig = {
+  enabled: false,
+  maxConcurrent: 50,
+  queueSize: 100,
+  queueTimeout: 30000,
 };

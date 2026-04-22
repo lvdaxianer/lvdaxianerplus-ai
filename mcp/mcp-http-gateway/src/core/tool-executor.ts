@@ -18,6 +18,7 @@ import { executeTool } from './executor.js';
 import { logger } from '../middleware/logger.js';
 import { recordMetric } from '../middleware/metrics.js';
 import { checkRateLimit } from '../features/rate-limit.js';
+import { acquireConcurrency, releaseConcurrency } from '../features/concurrency.js';
 import {
   recordAttempt,
   clearAttempt,
@@ -112,9 +113,26 @@ export async function executeToolCall(
     // 限流允许，继续执行
   }
 
+  // ===== 步骤 0.5：并发控制获取槽位 =====
+  // 条件注释：获取并发槽位失败时返回错误
+  try {
+    await acquireConcurrency(name);
+  } catch (error) {
+    // ----- 并发拒绝处理 -----
+    const errorMessage = error instanceof Error ? error.message : '并发控制错误';
+    logger.warn('[工具调用] 并发控制拒绝', { toolName: name, error: errorMessage });
+
+    // 记录指标（并发拒绝作为错误记录）
+    recordMetric(name, 'error');
+
+    // 返回并发拒绝错误响应
+    return createErrorResponse(errorMessage);
+  }
+
   // ===== 步骤 1：记录开始时间 =====
   const startTime = Date.now();
 
+  // 使用 try-finally 确保并发槽位释放
   try {
     // ===== 步骤 2：执行工具 =====
     // 调用 executor 执行 HTTP 请求
@@ -208,6 +226,10 @@ export async function executeToolCall(
       // 未启用尝试追踪，返回普通错误响应
       return createErrorResponse(message);
     }
+  } finally {
+    // ===== 步骤 6：释放并发槽位 =====
+    // 无论成功、失败还是异常，都要释放并发槽位
+    releaseConcurrency();
   }
 }
 

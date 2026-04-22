@@ -16,6 +16,7 @@ import { startStdioServer, startSseServer } from './core/server.js';
 import { startHttpServer, closeHttpServer } from './routes/http-server.js';
 import { initCache } from './features/cache.js';
 import { initRateLimit } from './features/rate-limit.js';
+import { initConcurrency } from './features/concurrency.js';
 import { setLogLevel, initFileLogging } from './middleware/logger.js';
 import { logger } from './middleware/logger.js';
 import { initDatabase, closeDatabase, cleanOldRecords, getDefaultDbPath } from './database/connection.js';
@@ -23,7 +24,7 @@ import { initSqliteLogger, stopSqliteLogger } from './database/sqlite-logger.js'
 import { initAlertLogger } from './database/alert-logger.js';
 import { initMockHandler } from './features/mock.js';
 import { loadToolCacheConfigs } from './routes/handlers/tool-cache.handler.js';
-import { DEFAULT_RATE_LIMIT } from './config/types.js';
+import { DEFAULT_RATE_LIMIT, DEFAULT_CONCURRENCY } from './config/types.js';
 
 interface CliArgs {
   configPath: string;
@@ -141,6 +142,20 @@ async function main(): Promise<void> {
     enabled: rateLimitConfig.enabled,
     type: rateLimitConfig.type,
     globalLimit: rateLimitConfig.globalLimit,
+  });
+
+  // Initialize Concurrency handler
+  // 条件：并发控制配置存在时初始化并发管理器
+  // 使用默认配置合并用户配置
+  const concurrencyConfig = {
+    ...DEFAULT_CONCURRENCY,
+    ...config.concurrency,
+  };
+  initConcurrency(concurrencyConfig);
+  logger.info('[启动] Concurrency initialized', {
+    enabled: concurrencyConfig.enabled,
+    maxConcurrent: concurrencyConfig.maxConcurrent,
+    queueSize: concurrencyConfig.queueSize,
   });
 
   logger.info('[启动] MCP HTTP Gateway starting...');

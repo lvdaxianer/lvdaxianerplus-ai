@@ -39,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 工具级限流配置：`rateLimit.toolLimits`（优先级高于全局）
   - Dashboard API：`/api/rate-limit`、`/api/rate-limit/tools`
 
+- ✨ **并发控制（Concurrency Control）**
+  - 最大并发请求限制：`concurrency.maxConcurrent`（默认 50）
+  - 等待队列机制：超出限制的请求进入队列等待
+  - 队列超时配置：`concurrency.queueTimeout`（默认 30 秒）
+  - Dashboard API：`/api/concurrency`
+
 ### Fixed
 
 - 🔧 **缓存 TTL 修复**：TTL=0 永不过期

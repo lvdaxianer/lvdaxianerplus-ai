@@ -14,6 +14,8 @@
 | **容灾机制** | 尝试次数限制 | 限制可选参数工具的尝试次数，避免浪费 token |
 | **流量控制** | 请求限流 (Rate Limit) | 令牌桶/滑动窗口算法，防止后端被压垮 |
 | **流量控制** | 工具级限流 | 单个工具独立限流配置，优先级高于全局 |
+| **流量控制** | 并发控制 (Concurrency) | 最大并发数限制 + 等待队列，防止资源耗尽 |
+| **流量控制** | 队列超时 | 等待超时自动返回错误，避免无限等待 |
 | **缓存机制** | LRU 缓存 | 缓存 GET 请求响应，支持 TTL 和工具级配置 |
 | **缓存机制** | TTL=0 永不过期 | 用于降级场景，缓存数据永久保留 |
 | **Mock 模式** | 全局 Mock | 全局开关，所有请求返回 Mock 数据 |
@@ -380,6 +382,43 @@ npx -y mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools
 
 ---
 
+### 11. 并发控制（Concurrency Control）
+
+防止资源耗尽，控制同时执行的请求数量。
+
+**配置示例**：
+
+```json
+{
+  "concurrency": {
+    "enabled": true,
+    "maxConcurrent": 50,    // 最大并发请求数
+    "queueSize": 100,       // 等待队列大小
+    "queueTimeout": 30000   // 队列等待超时（毫秒）
+  }
+}
+```
+
+**工作流程**：
+
+```
+请求到达 → 活跃数 < 最大并发？ → 立即执行
+           ↓ 否
+         队列已满？ → 返回错误
+           ↓ 否
+         进入队列等待 → 超时？ → 返回超时错误
+           ↓ 否
+         槽位释放 → 唤醒执行
+```
+
+**Dashboard API**：
+
+| 端点 | 说明 |
+|------|------|
+| `/api/concurrency` | 并发状态（活跃数、队列长度、超时次数） |
+
+---
+
 ## CLI 参数
 
 | 参数 | 说明 |
@@ -454,6 +493,12 @@ npx -y mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools
 | `/api/rate-limit` | 限流全局状态 |
 | `/api/rate-limit/tools` | 所有工具级限流状态 |
 | `/api/rate-limit/tools/:name` | 单个工具限流状态 |
+
+### 并发控制 API
+
+| 端点 | 说明 |
+|------|------|
+| `/api/concurrency` | 并发控制状态（活跃数、队列长度） |
 
 ### 健康检查 API
 

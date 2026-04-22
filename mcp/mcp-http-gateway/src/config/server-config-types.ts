@@ -348,3 +348,23 @@ export interface RateLimitConfig {
   globalLimit?: number;
   toolLimits?: Record<string, ToolRateLimitConfig>;
 }
+
+/**
+ * 并发控制配置
+ *
+ * 定义并发请求限制策略，防止资源耗尽。
+ *
+ * @param enabled - 是否启用并发控制（默认 false）
+ * @param maxConcurrent - 最大并发请求数（默认 50）
+ * @param queueSize - 等待队列大小（默认 100）
+ * @param queueTimeout - 队列等待超时（毫秒，默认 30000）
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-22
+ */
+export interface ConcurrencyConfig {
+  enabled: boolean;
+  maxConcurrent?: number;
+  queueSize?: number;
+  queueTimeout?: number;
+}
