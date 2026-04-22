@@ -45,6 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 队列超时配置：`concurrency.queueTimeout`（默认 30 秒）
   - Dashboard API：`/api/concurrency`
 
+- ✨ **超时强制中断（Timeout Abort）**
+  - AbortController 强制中断机制：防止请求无限等待
+  - 全局超时配置：`timeout.read`（默认 30 秒）
+  - 工具级超时配置：`tools[name].timeout`（优先级高于全局）
+  - Dashboard API：`/api/timeout`
+
 ### Fixed
 
 - 🔧 **缓存 TTL 修复**：TTL=0 永不过期

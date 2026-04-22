@@ -56,6 +56,7 @@ import { getFallbackConditionsRoutes } from './handlers/fallback-conditions.hand
 import { getToolCacheRoutes, loadToolCacheConfigs } from './handlers/tool-cache.handler.js';
 import { getRateLimitRoutes } from './handlers/rate-limit.handler.js';
 import { getConcurrencyRoutes } from './handlers/concurrency.handler.js';
+import { getTimeoutRoutes } from './handlers/timeout.handler.js';
 
 /**
  * HTTP 服务器配置选项
@@ -94,6 +95,7 @@ function registerAllRoutes(router: RouterStrategyTable, config: Config): void {
   router.registerAll(getToolCacheRoutes());
   router.registerAll(getRateLimitRoutes());
   router.registerAll(getConcurrencyRoutes());
+  router.registerAll(getTimeoutRoutes(config));
 
   // 加载工具缓存配置
   // 条件注释：传入 config 参数，首次启动时同步配置文件到数据库
