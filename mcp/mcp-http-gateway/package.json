@@ -46,7 +46,8 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONFIG.md"
   ],
   "scripts": {
     "build": "tsc",
