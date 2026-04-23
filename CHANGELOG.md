@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- 添加端口冲突自动处理和 Dashboard 端口显示 (8941a40)
 
 ### Changed
 - 添加 npm 发布检查清单并修复文档 (c1f69ba)
