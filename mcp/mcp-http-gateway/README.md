@@ -592,26 +592,13 @@ node dist/cli.js --transport=sse --sse-port=11120 --http-port=11121 --config too
 
 ## 更新日志
 
-### v1.2.0 (2026-04-22)
+> 查看 [CHANGELOG.md](CHANGELOG.md) 了解完整版本历史。
 
-- ✨ SSE 模式支持（持久连接，避免端口冲突）
-- ✨ 工具级配置持久化到 SQLite（优先级机制）
-- ✨ 尝试次数限制（Attempt Tracking）
-- 🔧 缓存 TTL 修复（TTL=0 永不过期）
-- 📝 完善 README 文档
+### v1.0.0 (2026-04-23) - 首次正式发布
 
-### v1.1.0 (2026-04-21)
+🎉 本版本为首个正式发布的稳定版本，包含完整的 MCP HTTP Gateway 功能集。
 
-- 🔧 修复 SQLite 日志记录失败问题
-- ✨ 新增 Dashboard 分页日志查询 API
-- 📝 完善 README 文档
-
-### v1.0.0 (2026-04-19)
-
-- 🎉 初始版本发布
-- ✨ 熔断器、降级策略、缓存机制
-- ✨ SQLite 日志记录
-- ✨ Dashboard 监控面板
+**版本策略**：偶数版本为稳定版，奇数版本为快速迭代版。
 
 ---
 
