@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Fixed
+- v1.0.1 添加 CLI shebang 修复 npx 执行失败 (b3bebf7)
+
 - 添加 CLI shebang 以修复 npx 执行失败 (af02b55)
 
 ### Changed

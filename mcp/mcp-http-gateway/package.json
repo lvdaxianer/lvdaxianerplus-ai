@@ -30,11 +30,11 @@
     "sqlite",
     "dashboard"
   ],
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "mcp-http-gateway": "dist/cli.js"
+    "mcp-http-gateway": "dist/cli.cjs"
   },
   "exports": {
     ".": {
@@ -43,7 +43,7 @@
     }
   },
   "files": [
-    "dist",
+    "dist/cli.cjs",
     "docs",
     "README.md",
     "README_CN.md",
@@ -54,9 +54,9 @@
     "CONFIG_EN.md"
   ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/cli.js",
-    "dev": "tsc && node dist/cli.js",
+    "build": "esbuild src/cli.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist/cli.cjs --external:better-sqlite3 --banner:js='#!/usr/bin/env node' --minify",
+    "start": "node dist/cli.cjs",
+    "dev": "npm run build && node dist/cli.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"

@@ -14,12 +14,10 @@ import type { RouteHandler } from '../router.js';
 import type { Config } from '../../config/types.js';
 import { handleDashboard } from '../health.js';
 import { sendJsonResponse, sendHtmlResponse } from './response.js';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
-// ES 模块兼容：获取当前文件目录
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// CommonJS 兼容：直接使用 __dirname（esbuild 会自动注入）
+declare const __dirname: string;
 
 /**
  * EJS 模板渲染函数（延迟加载）
