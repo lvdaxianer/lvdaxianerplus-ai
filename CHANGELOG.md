@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- 发布 v1.0.3 稳定版 (02d9448)
+
+- 更新变更日志 (c7bc08e)
+
+### Changed
 - 同步 Dashboard 文档变更记录 (7e4b831)
 
 - 添加 Dashboard 使用说明和端口确认方法 (df51c47)
