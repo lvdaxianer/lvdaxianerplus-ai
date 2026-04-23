@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- 添加 CLI shebang 以修复 npx 执行失败 (af02b55)
+
 ### Changed
+- 添加 Dashboard 截图到 README (d91c186)
+
 - 添加双语文档支持（英文+中文） (30f8208)
 
 ### Changed
