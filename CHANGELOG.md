@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
+### Changed
+- 添加 Dashboard 使用说明和端口确认方法 (df51c47)
+
+### Changed
+- 同步端口冲突处理变更记录 (465587e)
+
 - 添加端口冲突自动处理和 Dashboard 端口显示 (8941a40)
 
 ### Changed
