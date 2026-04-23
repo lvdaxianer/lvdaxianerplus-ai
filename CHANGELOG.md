@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- 添加双语文档支持（英文+中文） (30f8208)
 
 ### Changed
 - 修正 README 更新日志为首次发布 (ef32dfe)

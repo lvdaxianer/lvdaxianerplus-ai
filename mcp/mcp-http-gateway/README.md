@@ -36,6 +36,18 @@ A HTTP gateway service based on MCP protocol that forwards LLM tool call request
 
 ---
 
+## Dashboard Preview
+
+![Dashboard](docs/dashboard.png)
+
+The Dashboard provides real-time monitoring with:
+- **Statistics**: Total requests, success rate, error count, average latency
+- **Circuit Breaker Status**: Visual table showing CLOSED/OPEN/HALF_OPEN states
+- **Cache Status**: Cached entries count and max capacity
+- **Recent Requests**: Latest 10 requests with status, method, URL, response time
+
+---
+
 ## MCP Configuration
 
 ### Option 1: SSE Mode (Recommended, Persistent Connection)
