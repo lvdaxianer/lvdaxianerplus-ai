@@ -46,6 +46,26 @@ The Dashboard provides real-time monitoring with:
 - **Cache Status**: Cached entries count and max capacity
 - **Recent Requests**: Latest 10 requests with status, method, URL, response time
 
+### How to View Dashboard
+
+**Default URL**: `http://localhost:11112/dashboard`
+
+**Important**: If port `11112` is already in use, the service will automatically:
+1. Kill old node processes occupying the port (same-type process cleanup)
+2. Or find the next available port (e.g., `11113`, `11114`)
+
+**Check actual port**:
+- **Console log**: Look for `[启动] Dashboard available {"url":"http://localhost:XXXX/dashboard"}`
+- **Dashboard badge**: Green badge at page top shows `端口: XXXXX`
+- **Health check**: `http://localhost:XXXX/health` returns server info
+
+**Port adjustment example**:
+```
+[WARN] [端口检测] 端口被占用 {"port":11112,"pid":xxx}
+[INFO] [端口检测] 使用备用端口 {"originalPort":11112,"newPort":11113}
+[INFO] [启动] Dashboard available {"url":"http://localhost:11113/dashboard"}
+```
+
 ---
 
 ## MCP Configuration

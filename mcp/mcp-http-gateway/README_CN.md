@@ -46,6 +46,26 @@ Dashboard 提供实时监控功能：
 - **缓存状态**：已缓存条目数和最大容量
 - **最近请求**：最近 10 条请求，包含状态、方法、URL、响应时间
 
+### 如何查看 Dashboard
+
+**默认地址**：`http://localhost:11112/dashboard`
+
+**重要提示**：如果端口 `11112` 已被占用，服务会自动处理：
+1. 杀死占用该端口的老进程（同类 node 进程自动清理）
+2. 或尝试下一个可用端口（如 `11113`、`11114`）
+
+**确认实际端口**：
+- **控制台日志**：查找 `[启动] Dashboard available {"url":"http://localhost:XXXX/dashboard"}`
+- **页面徽章**：Dashboard 页面顶部绿色徽章显示 `端口: XXXXX`
+- **健康检查**：访问 `http://localhost:XXXX/health` 查看服务信息
+
+**端口调整示例**：
+```
+[WARN] [端口检测] 端口被占用 {"port":11112,"pid":xxx}
+[INFO] [端口检测] 使用备用端口 {"originalPort":11112,"newPort":11113}
+[INFO] [启动] Dashboard available {"url":"http://localhost:11113/dashboard"}
+```
+
 ---
 
 ## MCP 配置方式
