@@ -48,23 +48,51 @@ The Dashboard provides real-time monitoring with:
 
 ### How to View Dashboard
 
-**Default URL**: `http://localhost:11112/dashboard`
+**Port Allocation by Transport Mode**:
 
-**Important**: If port `11112` is already in use, the service will automatically:
+| Transport Mode | Dashboard Port | MCP Port | Notes |
+|----------------|----------------|----------|-------|
+| **STDIO** | 11112 (configurable) | STDIO transport | Use `--http-port=XXXXX` to change Dashboard port |
+| **SSE** | SSE port - 1 | SSE port | SSE MCP port defaults to 11114, Dashboard uses 11113 |
+
+**STDIO Mode**:
+- Default URL: `http://localhost:11112/dashboard`
+- Can be changed with `--http-port=XXXXX`
+
+**SSE Mode**:
+- Dashboard URL: `http://localhost:11113/dashboard` (SSE port 11114 minus 1)
+- MCP SSE URL: `http://localhost:11114/sse`
+- Can be changed with `--sse-port=XXXXX`, Dashboard automatically uses port minus 1
+
+**Important**: If a port is already in use, the service will automatically:
 1. Kill old node processes occupying the port (same-type process cleanup)
-2. Or find the next available port (e.g., `11113`, `11114`)
+2. Or find the next available port (up to 10 attempts)
 
-**Check actual port**:
-- **Console log**: Look for `[启动] Dashboard available {"url":"http://localhost:XXXX/dashboard"}`
-- **Dashboard badge**: Green badge at page top shows `端口: XXXXX`
-- **Health check**: `http://localhost:XXXX/health` returns server info
+**Methods to Check Actual Port**:
 
-**Port adjustment example**:
-```
-[WARN] [端口检测] 端口被占用 {"port":11112,"pid":xxx}
-[INFO] [端口检测] 使用备用端口 {"originalPort":11112,"newPort":11113}
-[INFO] [启动] Dashboard available {"url":"http://localhost:11113/dashboard"}
-```
+1. **Console Log** (Recommended):
+   ```
+   # STDIO mode
+   [INFO] [启动] Dashboard available {"url":"http://localhost:11112/dashboard"}
+   
+   # SSE mode
+   [INFO] [SSE] Dashboard HTTP Server 已启动 {"httpPort":11113,"dashboardUrl":"http://localhost:11113/dashboard"}
+   [INFO] [服务器] SSE Server 已启动 {"port":11114,"endpoint":"/sse"}
+   ```
+
+2. **Dashboard Badge**: Green badge at page top shows `端口: XXXXX`
+
+3. **Command Line Query**:
+   ```bash
+   # Check all node process listening ports
+   lsof -i -P | grep node | grep LISTEN
+   
+   # Test Dashboard accessibility
+   curl -s http://localhost:11112/dashboard | head -1
+   curl -s http://localhost:11113/dashboard | head -1
+   ```
+
+4. **Health Check**: `http://localhost:XXXXX/health` returns server info
 
 ---
 
@@ -83,7 +111,7 @@ Create `.mcp.json` in project root:
   "mcpServers": {
     "http-gateway": {
       "type": "sse",
-      "url": "http://localhost:11113/sse",
+      "url": "http://localhost:11114/sse",
       "description": "HTTP API Gateway"
     }
   }
@@ -94,8 +122,10 @@ Start service:
 
 ```bash
 cd mcp/mcp-http-gateway
-node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
+node dist/cli.cjs --transport=sse --sse-port=11114 --config tools.json
 ```
+
+> **Note**: SSE port defaults to 11114, Dashboard automatically uses 11113 (port minus 1).
 
 #### npx Config
 
@@ -104,7 +134,7 @@ node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
   "mcpServers": {
     "http-gateway": {
       "type": "sse",
-      "url": "http://localhost:11113/sse"
+      "url": "http://localhost:11114/sse"
     }
   }
 }
@@ -113,7 +143,7 @@ node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
 Start command:
 
 ```bash
-npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools.json
+npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11114 --config /path/to/tools.json
 ```
 
 ### Option 2: STDIO Mode (New Process per Session)
@@ -460,14 +490,14 @@ Request arrives → Active < Max? → Execute immediately
 
 ## CLI Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `--config <path>` | Config file path (default: ./tools.json) |
-| `--transport <mode>` | Transport mode: stdio / sse (default: stdio) |
-| `--sse-port <port>` | SSE port (default: 11113) |
-| `--http-port <port>` | HTTP/Dashboard port (default: 11112) |
-| `--sqlite` | Enable SQLite logging |
-| `--sqlite-path <path>` | SQLite database path |
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--config <path>` | Config file path | ./tools.json |
+| `--transport <mode>` | Transport mode: stdio / sse | stdio |
+| `--sse-port <port>` | SSE port (Dashboard uses port-1) | 11114 |
+| `--http-port <port>` | HTTP/Dashboard port (STDIO mode only) | 11112 |
+| `--sqlite` | Enable SQLite logging | - |
+| `--sqlite-path <path>` | SQLite database path | ./data/logs.db |
 
 > 📖 **Full Parameter Reference**: See [CONFIG.md](CONFIG.md) for detailed parameter descriptions, types, optional/required, and defaults.
 

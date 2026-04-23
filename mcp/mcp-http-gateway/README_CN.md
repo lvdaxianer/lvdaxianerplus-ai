@@ -48,23 +48,51 @@ Dashboard 提供实时监控功能：
 
 ### 如何查看 Dashboard
 
-**默认地址**：`http://localhost:11112/dashboard`
+**不同启动模式的端口分配**：
 
-**重要提示**：如果端口 `11112` 已被占用，服务会自动处理：
+| 启动模式 | Dashboard 端口 | MCP 端口 | 说明 |
+|----------|---------------|----------|------|
+| **STDIO** | 11112（可配置） | STDIO 传输 | `--http-port` 参数控制 Dashboard 端口 |
+| **SSE** | SSE端口-1 | SSE端口 | SSE MCP 端口默认 11114，Dashboard 自动使用 11113 |
+
+**STDIO 模式**：
+- 默认地址：`http://localhost:11112/dashboard`
+- 可通过 `--http-port=XXXXX` 修改
+
+**SSE 模式**：
+- Dashboard 地址：`http://localhost:11113/dashboard`（SSE 端口 11114 减 1）
+- MCP SSE 地址：`http://localhost:11114/sse`
+- 可通过 `--sse-port=XXXXX` 修改 SSE 端口，Dashboard 自动使用减 1 的端口
+
+**重要提示**：如果端口已被占用，服务会自动处理：
 1. 杀死占用该端口的老进程（同类 node 进程自动清理）
-2. 或尝试下一个可用端口（如 `11113`、`11114`）
+2. 或尝试下一个可用端口（最多尝试 10 次）
 
-**确认实际端口**：
-- **控制台日志**：查找 `[启动] Dashboard available {"url":"http://localhost:XXXX/dashboard"}`
-- **页面徽章**：Dashboard 页面顶部绿色徽章显示 `端口: XXXXX`
-- **健康检查**：访问 `http://localhost:XXXX/health` 查看服务信息
+**确认实际端口的方法**：
 
-**端口调整示例**：
-```
-[WARN] [端口检测] 端口被占用 {"port":11112,"pid":xxx}
-[INFO] [端口检测] 使用备用端口 {"originalPort":11112,"newPort":11113}
-[INFO] [启动] Dashboard available {"url":"http://localhost:11113/dashboard"}
-```
+1. **控制台日志**（推荐）：
+   ```
+   # STDIO 模式
+   [INFO] [启动] Dashboard available {"url":"http://localhost:11112/dashboard"}
+   
+   # SSE 模式
+   [INFO] [SSE] Dashboard HTTP Server 已启动 {"httpPort":11113,"dashboardUrl":"http://localhost:11113/dashboard"}
+   [INFO] [服务器] SSE Server 已启动 {"port":11114,"endpoint":"/sse"}
+   ```
+
+2. **页面徽章**：Dashboard 页面顶部绿色徽章显示 `端口: XXXXX`
+
+3. **命令行查询**：
+   ```bash
+   # 查看所有 node 进程监听的端口
+   lsof -i -P | grep node | grep LISTEN
+   
+   # 测试 Dashboard 是否可访问
+   curl -s http://localhost:11112/dashboard | head -1
+   curl -s http://localhost:11113/dashboard | head -1
+   ```
+
+4. **健康检查**：访问 `http://localhost:XXXXX/health` 查看服务信息
 
 ---
 
@@ -83,7 +111,7 @@ Dashboard 提供实时监控功能：
   "mcpServers": {
     "http-gateway": {
       "type": "sse",
-      "url": "http://localhost:11113/sse",
+      "url": "http://localhost:11114/sse",
       "description": "HTTP API 网关"
     }
   }
@@ -94,8 +122,10 @@ Dashboard 提供实时监控功能：
 
 ```bash
 cd mcp/mcp-http-gateway
-node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
+node dist/cli.cjs --transport=sse --sse-port=11114 --config tools.json
 ```
+
+> **注意**：SSE 端口默认为 11114，Dashboard 自动使用 11113（端口减 1）。
 
 #### npx 方式配置
 
@@ -104,7 +134,7 @@ node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
   "mcpServers": {
     "http-gateway": {
       "type": "sse",
-      "url": "http://localhost:11113/sse"
+      "url": "http://localhost:11114/sse"
     }
   }
 }
@@ -113,7 +143,7 @@ node dist/cli.cjs --transport=sse --sse-port=11113 test.tools.filtered.json
 启动命令：
 
 ```bash
-npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11113 --config /path/to/tools.json
+npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11114 --config /path/to/tools.json
 ```
 
 ### 方式二：STDIO 模式（每次会话启动新进程）
@@ -460,14 +490,14 @@ npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11113 --config /p
 
 ## CLI 参数
 
-| 参数 | 说明 |
-|------|------|
-| `--config <path>` | 配置文件路径（默认：./tools.json） |
-| `--transport <mode>` | 传输模式：stdio / sse（默认：stdio） |
-| `--sse-port <port>` | SSE 端口（默认：11113） |
-| `--http-port <port>` | HTTP/Dashboard 端口（默认：11112） |
-| `--sqlite` | 启用 SQLite 日志 |
-| `--sqlite-path <path>` | 指定 SQLite 数据库路径 |
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--config <path>` | 配置文件路径 | ./tools.json |
+| `--transport <mode>` | 传输模式：stdio / sse | stdio |
+| `--sse-port <port>` | SSE 端口（Dashboard 使用端口-1） | 11114 |
+| `--http-port <port>` | HTTP/Dashboard 端口（仅 STDIO 模式） | 11112 |
+| `--sqlite` | 启用 SQLite 日志 | - |
+| `--sqlite-path <path>` | 指定 SQLite 数据库路径 | ./data/logs.db |
 
 > 📖 **完整参数说明**：参见 [CONFIG.md](CONFIG.md) 了解所有配置参数的详细说明、类型、是否可选及默认值。
 
