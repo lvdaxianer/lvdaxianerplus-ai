@@ -8,44 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- 同步版本变更记录 (6d330a6)
-
-- 同步版本变更记录 (8d891d7)
-
-### Changed
-- 同步版本变更记录 (2ab376b)
-
-- 同步版本变更记录 (a41d93d)
-
-### Changed
 - 添加 npm 发布检查清单并修复文档 (c1f69ba)
-
 - 更新 README 中的 CLI 文件路径为 cli.cjs (a713fb3)
+- 添加 Dashboard 截图到 README (d91c186)
+- 添加双语文档支持（英文+中文） (30f8208)
+- 修正 README 更新日志为首次发布 (ef32dfe)
+- 修改包名为 @lvdaxianer/mcp-http-gateway (9bbad2c)
+- v1.0.0 首次正式发布 (77e4d4d)
 
 ### Fixed
 - 移除不存在的 main/types/exports 字段 (e4717a6)
-
 - 使用 esbuild 打包为单文件 CommonJS (90e9add)
-
-### Fixed
 - v1.0.1 添加 CLI shebang 修复 npx 执行失败 (b3bebf7)
-
 - 添加 CLI shebang 以修复 npx 执行失败 (af02b55)
-
-### Changed
-- 添加 Dashboard 截图到 README (d91c186)
-
-- 添加双语文档支持（英文+中文） (30f8208)
-
-### Changed
-- 修正 README 更新日志为首次发布 (ef32dfe)
-
-- 修改包名为 @lvdaxianer/mcp-http-gateway (9bbad2c)
-
-### Changed
-- v1.0.0 首次正式发布 (77e4d4d)
-
-- 同步版本变更记录 (229c09c)
 
 ### Changed
 - 添加 CONFIG.md 到 npm 发布文件列表 (387d99b)
