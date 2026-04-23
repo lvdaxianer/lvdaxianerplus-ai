@@ -30,17 +30,8 @@
     "sqlite",
     "dashboard"
   ],
-  "main": "dist/index.cjs",
-  "types": "dist/index.d.ts",
-  "type": "module",
   "bin": {
     "mcp-http-gateway": "dist/cli.cjs"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
   },
   "files": [
     "dist/cli.cjs",
