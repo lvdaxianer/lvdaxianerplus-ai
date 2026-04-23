@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- 同步版本变更记录 (6d330a6)
+
+- 同步版本变更记录 (8d891d7)
+
+### Changed
+- 同步版本变更记录 (2ab376b)
+
+- 同步版本变更记录 (a41d93d)
+
+### Changed
+- 添加 npm 发布检查清单并修复文档 (c1f69ba)
+
+- 更新 README 中的 CLI 文件路径为 cli.cjs (a713fb3)
+
+### Fixed
+- 移除不存在的 main/types/exports 字段 (e4717a6)
+
+- 使用 esbuild 打包为单文件 CommonJS (90e9add)
+
 ### Fixed
 - v1.0.1 添加 CLI shebang 修复 npx 执行失败 (b3bebf7)
 
