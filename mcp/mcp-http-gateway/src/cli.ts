@@ -204,7 +204,13 @@ async function main(): Promise<void> {
   if (cliArgs.transport === 'dual') {
     // DUAL 模式：同时启动 SSE 和 STDIO
     try {
-      await startSseServer(config, cliArgs.ssePort, cliArgs.httpPort);
+      // 条件注释：启动 SSE Server（包含 Dashboard HTTP Server）
+      const sseResult = await startSseServer(config, cliArgs.ssePort, cliArgs.httpPort);
+      actualHttpPort = sseResult.httpPort;
+      logger.info('[启动] SSE Server started (dual mode)', { ssePort: cliArgs.ssePort, httpPort: actualHttpPort });
+
+      // 条件注释：再启动 STDIO Server（阻塞，保持进程运行）
+      logger.info('[启动] Starting STDIO Server (dual mode)');
       await startStdioServer(config);
     } catch (error) {
       logger.error('[启动] Failed to start dual mode servers', { error });

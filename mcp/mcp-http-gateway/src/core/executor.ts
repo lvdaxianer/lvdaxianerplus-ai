@@ -214,6 +214,22 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
       source: toolMockOn ? 'tool-config' : 'global-config'
     });
     const mockResult = await executeMockCall(toolName, args, tool.mock);
+    const duration = mockResult.duration ?? Date.now() - startTime;
+
+    // 条件注释：Mock 调用也记录到 SQLite 日志（用于 Dashboard metrics 统计）
+    if (config.sqlite?.enabled) {
+      if (mockResult.success) {
+        // 条件注释：Mock 成功时记录成功日志
+        logRequestToSqlite(toolName, 'MOCK', 'mock://local', {}, {});
+        logger.debug('[SQLite] Mock 请求已记录', { toolName, success: true });
+      } else {
+        // 条件注释：Mock 失败时记录错误日志
+        logErrorToSqlite(null, toolName, new Error(`Mock error: ${mockResult.statusCode}`), duration, 'MOCK', 'mock://local', {}, {});
+        logger.debug('[SQLite] Mock 错误已记录', { toolName, statusCode: mockResult.statusCode });
+      }
+      // 条件注释：立即刷新缓冲区，确保数据写入数据库
+      flushBuffers();
+    }
 
     // 条件注释：Mock 失败时也记录熔断器失败（用于测试熔断器）
     if (!mockResult.success && config.circuitBreaker?.enabled) {
