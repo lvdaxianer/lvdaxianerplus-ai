@@ -23,7 +23,7 @@ import { transformRequest, transformResponse } from '../features/transform.js';
 import type { HttpClient, HttpResponse } from '../utils/http-client.js';
 import { createHttpClient } from '../utils/http-client.js';
 import { logger } from '../middleware/logger.js';
-import { isMockEnabled, executeMockCall, canUseMockAsFallback, executeMockFallback, getGlobalMockEnabled } from '../features/mock.js';
+import { isMockEnabled, executeMockCall, canUseMockAsFallback, executeMockFallback, getGlobalMockEnabled, getAllMockData } from '../features/mock.js';
 import { evaluateFallbackConditions } from '../utils/fallback-evaluator.js';
 import { isToolCacheEnabled, getToolCacheTtl } from '../routes/handlers/tool-cache.handler.js';
 import {
@@ -200,12 +200,29 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
   // Record start time for duration calculation
   const startTime = Date.now();
 
-  // Step 1: Global mock mode check (only for testing)
-  // This is different from tool-level mock for fallback
-  // Global mock mode means the entire system is in test mode
-  if (getGlobalMockEnabled() && isMockEnabled(toolName, tool.mock)) {
-    logger.info(`[${toolName}] 全局 Mock 模式启用，返回 Mock 响应`);
+  // Step 1: Mock mode check (工具级 Mock 独立控制)
+  // 方案 B：工具级独立 - 工具 Mock ON 时直接生效，不受全局开关影响
+  // isMockEnabled 函数已处理优先级：工具级 Mock > 数据库 Mock > 全局 Mock
+  // 条件注释：工具 Mock 启用时返回 Mock 响应，不发起真实 API 调用
+  if (isMockEnabled(toolName, tool.mock)) {
+    const globalMockOn = getGlobalMockEnabled();
+    const mockDataStore = getAllMockData();
+    const toolMockOn = mockDataStore[toolName]?.enabled ?? tool.mock?.enabled ?? false;
+    logger.info(`[${toolName}] Mock 模式启用，返回 Mock 响应`, {
+      globalMock: globalMockOn,
+      toolMock: toolMockOn,
+      source: toolMockOn ? 'tool-config' : 'global-config'
+    });
     const mockResult = await executeMockCall(toolName, args, tool.mock);
+
+    // 条件注释：Mock 失败时也记录熔断器失败（用于测试熔断器）
+    if (!mockResult.success && config.circuitBreaker?.enabled) {
+      recordFailure(toolName);
+      logger.warn(`[${toolName}] Mock 失败，记录熔断器失败`, {
+        statusCode: mockResult.statusCode,
+        threshold: config.circuitBreaker.failureThreshold
+      });
+    }
 
     // Log audit for mock call
     if (config.audit?.enabled) {
@@ -243,7 +260,7 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
   // Step 2: Circuit breaker state check
   // OPEN state triggers fallback chain instead of direct error
   if (config.circuitBreaker?.enabled) {
-    const circuitState = checkCircuitBreaker(toolName, config.circuitBreaker);
+    const circuitState = checkCircuitBreaker(toolName);
 
     // Condition: circuit breaker is OPEN, trigger fallback
     if (circuitState === 'OPEN') {
@@ -347,7 +364,7 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
 
     // Record circuit breaker failure
     if (config.circuitBreaker?.enabled) {
-      recordFailure(toolName, config.circuitBreaker);
+      recordFailure(toolName);
     }
 
     // Log error
@@ -391,7 +408,7 @@ export async function executeTool(context: ExecuteContext): Promise<ExecuteResul
 
   // Record circuit breaker success
   if (config.circuitBreaker?.enabled) {
-    recordSuccess(toolName, config.circuitBreaker);
+    recordSuccess(toolName);
   }
 
   // Parse response

@@ -89,7 +89,10 @@ export async function toolMockGetHandler(
     sendBadRequestResponse(res, 'Tool not found');
     return true;
   } else {
-    const mockConfig = config.tools[toolName]?.mock ?? getAllMockData()[toolName];
+    // 条件注释：优先使用数据库/内存缓存中的 Mock 配置（支持热更新）
+    // 配置文件中的 Mock 配置仅作为 fallback（首次启动时使用）
+    const mockDataStore = getAllMockData();
+    const mockConfig = mockDataStore[toolName] ?? config.tools[toolName]?.mock;
     sendJsonResponse(res, 200, { toolName, mockConfig });
     return true;
   }

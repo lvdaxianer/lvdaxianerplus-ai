@@ -77,6 +77,7 @@ import { getTraceRoutes } from './handlers/trace.handler.js';
 import { getAlertRoutes } from './handlers/alert.handler.js';
 import { getConfigVersionRoutes } from './handlers/config-version.handler.js';
 import { getCanaryRoutes } from './handlers/canary.handler.js';
+import { getCircuitBreakerRoutes } from './handlers/circuit-breaker.handler.js';
 
 /**
  * HTTP 服务器配置选项
@@ -119,15 +120,14 @@ function registerAllRoutes(router: RouterStrategyTable, config: Config): void {
   router.registerAll(getTraceRoutes());
   router.registerAll(getConfigVersionRoutes(config));
   router.registerAll(getCanaryRoutes(config));
+  router.registerAll(getCircuitBreakerRoutes());
 
   // 加载工具缓存配置
   // 条件注释：传入 config 参数，首次启动时同步配置文件到数据库
   loadToolCacheConfigs(config);
 
-  logger.info('[HTTP服务] 已注册路由', {
-    count: router.getRoutes().length,
-    routes: router.getRoutes().map((r) => r.name),
-  });
+  // 条件注释：不打印详细路由列表，简化启动日志
+  logger.debug('[HTTP服务] 已注册路由', { count: router.getRoutes().length });
 }
 
 /**
@@ -260,7 +260,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<{ ser
   httpServer = server;
 
   server.listen(port, () => {
-    logger.info('[HTTP服务] HTTP server started', { port });
+    // HTTP Server 启动完成（不打印日志，最终地址在 cli.ts 统一显示）
   });
 
   return { server, port };

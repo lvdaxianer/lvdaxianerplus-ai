@@ -50,19 +50,20 @@ Dashboard 提供实时监控功能：
 
 **不同启动模式的端口分配**：
 
-| 启动模式 | Dashboard 端口 | MCP 端口 | 说明 |
-|----------|---------------|----------|------|
-| **STDIO** | 11112（可配置） | STDIO 传输 | `--http-port` 参数控制 Dashboard 端口 |
-| **SSE** | SSE端口-1 | SSE端口 | SSE MCP 端口默认 11114，Dashboard 自动使用 11113 |
+| 启动模式 | Dashboard 端口 | MCP SSE 端口 | CLI 参数示例 |
+|----------|---------------|--------------|--------------|
+| **STDIO** | `--http-port`（默认 11112） | 无（STDIO 传输） | `--http-port=9000` |
+| **SSE** | `--sse-port - 1`（默认 11113） | `--sse-port`（默认 11114） | `--sse-port=9000` |
 
 **STDIO 模式**：
 - 默认地址：`http://localhost:11112/dashboard`
-- 可通过 `--http-port=XXXXX` 修改
+- 自定义端口：`node dist/cli.cjs --http-port=9000`
+- MCP 通过 STDIO 传输，无需端口
 
 **SSE 模式**：
 - Dashboard 地址：`http://localhost:11113/dashboard`（SSE 端口 11114 减 1）
 - MCP SSE 地址：`http://localhost:11114/sse`
-- 可通过 `--sse-port=XXXXX` 修改 SSE 端口，Dashboard 自动使用减 1 的端口
+- 自定义端口：`node dist/cli.cjs --transport=sse --sse-port=9000`（Dashboard 自动使用 8999）
 
 **重要提示**：如果端口已被占用，服务会自动处理：
 1. 杀死占用该端口的老进程（同类 node 进程自动清理）
@@ -490,14 +491,29 @@ npx -y @lvdaxianer/mcp-http-gateway --transport=sse --sse-port=11114 --config /p
 
 ## CLI 参数
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--config <path>` | 配置文件路径 | ./tools.json |
-| `--transport <mode>` | 传输模式：stdio / sse | stdio |
-| `--sse-port <port>` | SSE 端口（Dashboard 使用端口-1） | 11114 |
-| `--http-port <port>` | HTTP/Dashboard 端口（仅 STDIO 模式） | 11112 |
-| `--sqlite` | 启用 SQLite 日志 | - |
-| `--sqlite-path <path>` | 指定 SQLite 数据库路径 | ./data/logs.db |
+| 参数 | 说明 | 默认值 | 适用模式 |
+|------|------|--------|----------|
+| `--config <path>` | 配置文件路径 | ./tools.json | 所有模式 |
+| `--transport <mode>` | 传输模式：stdio / sse | stdio | 所有模式 |
+| `--http-port <port>` | Dashboard 端口 | 11112 | STDIO 模式 |
+| `--sse-port <port>` | SSE 端口（Dashboard 使用端口-1） | 11114 | SSE 模式 |
+| `--sqlite` | 启用 SQLite 日志 | - | 所有模式 |
+| `--sqlite-path <path>` | 指定 SQLite 数据库路径 | ./data/logs.db | 所有模式 |
+
+**端口配置示例**：
+
+```bash
+# STDIO 模式 - 自定义 Dashboard 端口
+node dist/cli.cjs --http-port=9000
+
+# SSE 模式 - 自定义 SSE 端口（Dashboard 自动使用 8999）
+node dist/cli.cjs --transport=sse --sse-port=9000
+
+# SSE 模式 - 默认端口
+node dist/cli.cjs --transport=sse
+# Dashboard: http://localhost:11113/dashboard
+# SSE: http://localhost:11114/sse
+```
 
 > 📖 **完整参数说明**：参见 [CONFIG.md](CONFIG.md) 了解所有配置参数的详细说明、类型、是否可选及默认值。
 

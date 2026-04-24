@@ -292,12 +292,13 @@ function performHealthChecks(config: Config, toolNames: string[]): HealthChecks 
       };
 
   // ===== 熔断器检查 =====
-  const circuitBreakerStatus = getCircuitBreakerStatus(toolNames);
+  // 条件注释：不传 toolNames，获取所有有熔断记录的工具状态
+  const circuitBreakerStatus = getCircuitBreakerStatus();
   const cbStates = Object.values(circuitBreakerStatus).map(s => s.state);
   const allClosed = cbStates.every(s => s === 'CLOSED');
   const openCount = cbStates.filter(s => s === 'OPEN').length;
   const cbStatus: ComponentStatus = {
-    status: allClosed ? 'ok' : (openCount > toolNames.length / 2 ? 'error' : 'degraded'),
+    status: allClosed ? 'ok' : (openCount > Object.keys(circuitBreakerStatus).length / 2 ? 'error' : 'degraded'),
     detail: `${cbStates.filter(s => s === 'CLOSED').length}/${cbStates.length} closed`,
     metrics: { openCount, halfOpenCount: cbStates.filter(s => s === 'HALF_OPEN').length },
   };
@@ -377,7 +378,8 @@ export function handleDetailedHealth(config: Config): DetailedHealthResponse {
   const concurrencyStats = getConcurrencyStatus();
   const traceConfig = getTraceConfig();
   const activeTraces = getActiveTracesCount();
-  const circuitBreakerStatus = getCircuitBreakerStatus(toolNames);
+  // 条件注释：不传 toolNames，获取所有有熔断记录的工具状态
+  const circuitBreakerStatus = getCircuitBreakerStatus();
 
   return {
     ...baseHealth,
@@ -586,7 +588,8 @@ export function handleDashboard(config: Config): DashboardData {
 
   return {
     metrics: metricsData,
-    circuitBreakers: getCircuitBreakerStatus(toolNames),
+    // 条件注释：不传 toolNames，让 getCircuitBreakerStatus 返回所有有熔断记录的工具状态
+    circuitBreakers: getCircuitBreakerStatus(),
     toolDescriptions: Object.fromEntries(
       toolNames.map(name => [name, config.tools[name]?.description ?? ''])
     ),

@@ -1,6 +1,49 @@
 <!-- Logs Page - 日志详情页面 -->
 <div id="page-logs" class="page">
   <div class="bento-grid">
+    <!-- 调用类型说明 -->
+    <div class="card span-12" style="background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);">
+      <div class="card-title" style="font-size: 14px;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        调用类型说明
+      </div>
+      <div style="display: flex; gap: 24px; font-size: 13px; color: var(--text);">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="padding: 2px 8px; border-radius: 4px; background: #DCFCE7; color: #22C55E; font-weight: 600;">Mock</span>
+            <span style="color: var(--text-muted);">Mock 模式直接返回</span>
+          </div>
+          <p style="color: #64748B; line-height: 1.5;">
+            工具 Mock 开启时，不发起任何 HTTP 请求，直接返回配置的 Mock 数据。<br>
+            <strong>特征：</strong>duration = 0ms，无真实 URL
+          </p>
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="padding: 2px 8px; border-radius: 4px; background: #EFF6FF; color: #3B82F6; font-weight: 600;">HTTP调用</span>
+            <span style="color: var(--text-muted);">正常 HTTP 请求</span>
+          </div>
+          <p style="color: #64748B; line-height: 1.5;">
+            工具 Mock 关闭时，发起真实 HTTP 请求并返回响应。<br>
+            <strong>特征：</strong>duration > 0ms，有真实 URL
+          </p>
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="padding: 2px 8px; border-radius: 4px; background: #FEF3C7; color: #F59E0B; font-weight: 600;">HTTP失败→降级</span>
+            <span style="color: var(--text-muted);">HTTP 失败后使用 Mock 降级</span>
+          </div>
+          <p style="color: #64748B; line-height: 1.5;">
+            HTTP 请求失败（40x/50x/超时）后，自动使用 Mock 数据作为降级响应。<br>
+            <strong>特征：</strong>有真实 URL + HTTP 状态码 ≥ 400
+          </p>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        💡 <strong>关键区别：</strong>Mock 模式 = 跳过 HTTP 请求；Fallback Mock = HTTP 失败后的降级方案
+      </div>
+    </div>
+
     <div class="card span-12">
       <div class="card-title">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -26,9 +69,9 @@
       </div>
       <div class="table-wrapper" style="max-height: 500px; overflow-y: auto;">
         <table>
-          <thead><tr><th>时间</th><th>工具</th><th>方法</th><th>URL</th><th>状态</th><th>耗时</th></tr></thead>
+          <thead><tr><th>时间</th><th>工具</th><th>方法</th><th>URL</th><th>调用类型</th><th>状态</th><th>耗时</th></tr></thead>
           <tbody id="logs-table-body">
-            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">请选择日期后查询</td></tr>
+            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">请选择日期后查询</td></tr>
           </tbody>
         </table>
       </div>

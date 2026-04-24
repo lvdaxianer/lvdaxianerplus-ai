@@ -145,35 +145,52 @@ function saveMockConfigToDatabase(toolName: string, config: MockToolConfig): voi
 /**
  * Check if mock is enabled for a tool
  *
- * 热加载：每次检查时从数据库重新加载配置，确保配置更新后立即生效。
+ * 工具级 Mock 独立控制：
+ * - 工具 Mock ON → Mock 生效，不受全局开关影响
+ * - 工具 Mock OFF → 不生效，走真实 API
+ * - 工具未单独配置时 → 使用全局 Mock 设置
  *
  * @param toolName - Tool name
  * @param toolMockConfig - Tool-specific mock config
  * @returns Whether mock is enabled
  *
  * @author lvdaxianerplus
- * @date 2026-04-22
+ * @date 2026-04-23
  */
 export function isMockEnabled(toolName: string, toolMockConfig?: MockToolConfig): boolean {
-  // Global mock disabled
-  if (!globalMockEnabled) {
-    return false;
-  }
-
-  // Check tool-specific mock config (from config file)
-  if (toolMockConfig?.enabled) {
-    return true;
-  }
-
-  // 热加载：从数据库重新加载 Mock 配置
+  // Step 1: 热加载：从数据库重新加载 Mock 配置（最高优先级，支持热更新）
   reloadMockConfigFromDatabase(toolName);
 
-  // Check mock data store (after hot reload)
-  if (mockDataStore[toolName]?.enabled) {
-    return true;
+  // Step 2: 检查数据库中的 Mock 配置
+  // 条件注释：数据库中存在 Mock 配置时，使用该配置（支持热更新）
+  const dbConfig = mockDataStore[toolName];
+  if (dbConfig !== undefined && 'enabled' in dbConfig) {
+    const result = dbConfig.enabled;
+    logger.info('[Mock Handler] Mock check result from database', {
+      toolName,
+      dbEnabled: result,
+      globalMock: globalMockEnabled
+    });
+    return result;
   }
 
-  return false;
+  // Step 3: 检查配置文件中的工具级 Mock 配置（次优先级）
+  // 条件注释：配置文件中明确配置了 enabled 字段时，使用该配置
+  if (toolMockConfig !== undefined && 'enabled' in toolMockConfig) {
+    logger.info('[Mock Handler] Mock check result from config file', {
+      toolName,
+      configEnabled: toolMockConfig.enabled,
+      globalMock: globalMockEnabled
+    });
+    return toolMockConfig.enabled;
+  }
+
+  // Step 4: 工具未单独配置时，使用全局 Mock 设置（最低优先级）
+  logger.info('[Mock Handler] Mock check result from global', {
+    toolName,
+    globalMock: globalMockEnabled
+  });
+  return globalMockEnabled;
 }
 
 /**
@@ -197,8 +214,9 @@ export function generateMockResponse(
   headers: Record<string, string>;
   delay: number;
 } {
-  // Get mock config (tool-specific or from store)
-  const mockConfig = toolMockConfig ?? mockDataStore[toolName];
+  // Get mock config (database/memory has higher priority for hot reload)
+  // 条件注释：优先使用数据库/内存中的配置（支持热更新），其次使用配置文件中的配置
+  const mockConfig = mockDataStore[toolName] ?? toolMockConfig;
 
   // Condition: no mock config available
   if (!mockConfig) {
@@ -406,9 +424,13 @@ export async function executeMockCall(
  * @date 2026-04-21
  */
 export function canUseMockAsFallback(toolName: string, toolMockConfig?: MockToolConfig): boolean {
-  // Check tool-specific mock config first
-  // Fallback mock only uses static response, not dynamic generation
-  if (toolMockConfig?.enabled && toolMockConfig.response) {
+  // Fallback mock uses static response only, independent of Mock mode
+  // 条件注释：Fallback 使用 Mock 的条件是存在 response 字段，不需要 enabled=true
+  // Mock 模式控制是否跳过 HTTP，Fallback Mock 控制是否用 Mock 作为降级数据
+
+  // Check tool-specific mock config from config file
+  // 条件注释：配置文件有 response 字段即可作为 fallback
+  if (toolMockConfig?.response) {
     return true;
   }
 
@@ -416,8 +438,9 @@ export function canUseMockAsFallback(toolName: string, toolMockConfig?: MockTool
   reloadMockConfigFromDatabase(toolName);
 
   // Check mock data store for static mock config
+  // 条件注释：数据库中有 response 字段即可作为 fallback（不需要 enabled=true）
   const storeConfig = mockDataStore[toolName];
-  if (storeConfig?.enabled && storeConfig.response) {
+  if (storeConfig?.response) {
     return true;
   }
 
@@ -456,14 +479,22 @@ function reloadMockConfigFromDatabase(toolName: string): void {
         // 同步数据库中的 enabled 字段（关键：数据库 enabled=0 时禁用 Mock）
         config.enabled = row.enabled === 1;
         mockDataStore[row.tool_name] = config;
+        logger.info('[Mock Handler] Reloaded mock config from database', {
+          toolName,
+          dbEnabled: row.enabled,
+          configEnabled: config.enabled,
+          hasResponse: !!config.response
+        });
       } else {
         // 未找到配置，保持现有状态
+        logger.info('[Mock Handler] No mock config in database for tool', { toolName });
       }
     } catch (error) {
       logger.warn('[Mock Handler] Failed to reload mock config', { toolName, error });
     }
   } else {
     // 数据库不可用，使用内存缓存
+    logger.warn('[Mock Handler] Database not available for hot reload', { toolName });
   }
 }
 

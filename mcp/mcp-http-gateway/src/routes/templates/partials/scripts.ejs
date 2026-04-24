@@ -11,6 +11,48 @@
   let mockResponseEditor = null;
   let configEditorInstance = null;
 
+  // 端口查询命令服务端口（由模板注入）
+  const serverPort = <%= serverPort %>;
+
+  /**
+   * 复制端口查询命令到剪贴板
+   *
+   * @author lvdaxianerplus
+   * @date 2026-04-24
+   */
+  function copyPortQueryCommand() {
+    // 条件注释：构建端口查询命令，使用 lsof 检测端口占用
+    const command = 'lsof -i :' + serverPort;
+
+    // 条件注释：使用 Clipboard API 复制命令
+    navigator.clipboard.writeText(command).then(() => {
+      // 复制成功，显示提示
+      const hint = document.querySelector('.copy-hint');
+      if (hint) {
+        hint.style.opacity = '1';
+        setTimeout(() => {
+          hint.style.opacity = '0';
+        }, 1500);
+      }
+      showToast('命令已复制: ' + command, 'success');
+    }).catch(() => {
+      // 复制失败，使用备用方法
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('命令已复制: ' + command, 'success');
+      } catch (err) {
+        showToast('复制失败，请手动复制', 'error');
+      }
+      document.body.removeChild(textArea);
+    });
+  }
+
   // 初始化 Mock 响应编辑器
   function initMockResponseEditor() {
     const container = document.getElementById('mock-response-editor');
@@ -103,6 +145,83 @@
   document.getElementById('refresh-interval').addEventListener('change', startAutoRefresh);
   document.getElementById('refresh-btn').addEventListener('click', () => refreshDashboardData());
 
+  // Load circuit breaker config
+  async function loadCircuitBreakerConfig() {
+    try {
+      const data = await api('/api/circuit-breaker');
+      document.getElementById('cb-enabled').value = data.config.enabled ? 'true' : 'false';
+      document.getElementById('cb-failureThreshold').value = data.config.failureThreshold;
+      document.getElementById('cb-successThreshold').value = data.config.successThreshold;
+      document.getElementById('cb-halfOpenTime').value = data.config.halfOpenTime;
+    } catch (error) {
+      console.error('Failed to load circuit breaker config:', error);
+    }
+  }
+
+  // Update circuit breaker config
+  async function updateCircuitBreakerConfig() {
+    const enabled = document.getElementById('cb-enabled').value === 'true';
+    const failureThreshold = parseInt(document.getElementById('cb-failureThreshold').value, 10);
+    const successThreshold = parseInt(document.getElementById('cb-successThreshold').value, 10);
+    const halfOpenTime = parseInt(document.getElementById('cb-halfOpenTime').value, 10);
+
+    // Validation
+    if (failureThreshold < 1) {
+      showToast('失败阈值必须 >= 1', 'error');
+      return;
+    }
+    if (successThreshold < 1) {
+      showToast('成功阈值必须 >= 1', 'error');
+      return;
+    }
+    if (halfOpenTime < 1000) {
+      showToast('半开等待时间必须 >= 1000 毫秒', 'error');
+      return;
+    }
+
+    try {
+      const response = await api('/api/circuit-breaker', {
+        method: 'PUT',
+        body: JSON.stringify({
+          enabled,
+          failureThreshold,
+          successThreshold,
+          halfOpenTime
+        })
+      });
+
+      if (response.success) {
+        showToast('熔断器配置已更新，状态已重置', 'success');
+        // Refresh dashboard to show updated status
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast(response.error || '更新失败', 'error');
+      }
+    } catch (error) {
+      showToast('更新失败: ' + error.message, 'error');
+    }
+  }
+
+  // Reset all circuit breaker states
+  async function resetAllCircuitBreakers() {
+    try {
+      const response = await api('/api/circuit-breaker/reset', {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+
+      if (response.success) {
+        showToast('所有熔断器状态已重置', 'success');
+        // Refresh dashboard to show updated status
+        setTimeout(() => location.reload(), 500);
+      } else {
+        showToast(response.error || '重置失败', 'error');
+      }
+    } catch (error) {
+      showToast('重置失败: ' + error.message, 'error');
+    }
+  }
+
   // Navigation
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -122,7 +241,32 @@
   async function refreshDashboardData() {
     const data = await api('/api/dashboard');
     document.querySelector('.stat-value').textContent = data.metrics.aggregated.totalRequests;
+
+    // 条件注释：更新熔断器状态表格
+    updateCircuitBreakersTable(data.circuitBreakers, data.toolDescriptions);
+
     showToast('数据已刷新', 'info');
+  }
+
+  // Update circuit breakers table
+  function updateCircuitBreakersTable(circuitBreakers, toolDescriptions) {
+    const tbody = document.getElementById('circuit-breakers-body');
+    if (!tbody) return;
+
+    // 条件注释：无熔断器数据时显示空提示
+    if (!circuitBreakers || Object.keys(circuitBreakers).length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">暂无熔断器状态记录</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = Object.entries(circuitBreakers).map(([name, cb]) => {
+      return '<tr>' +
+        '<td><div style="display:flex;flex-direction:column;gap:2px;"><strong>' + name + '</strong><span style="font-size:12px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;">' + (toolDescriptions[name] || '') + '</span></div></td>' +
+        '<td><span class="badge badge-' + cb.state.toLowerCase().replace('_', '') + '">' + cb.state + '</span></td>' +
+        '<td>' + cb.failures + '</td>' +
+        '<td>' + cb.successes + '</td>' +
+      '</tr>';
+    }).join('');
   }
 
   // Load tools
@@ -479,15 +623,32 @@
   function renderLogsTable(data) {
     const tbody = document.getElementById('logs-table-body');
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">无数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">无数据</td></tr>';
       return;
     }
     tbody.innerHTML = data.map(l => {
+      // 判断调用类型
+      // 条件注释：duration=0 或无 URL 表示 Mock 模式，duration>0 表示真实 HTTP 调用
+      let callType = 'HTTP调用';
+      let callTypeColor = '#3B82F6'; // 蓝色
+      let callTypeBg = '#EFF6FF';
+      if (!l.url || l.duration === 0) {
+        callType = 'Mock';
+        callTypeColor = '#22C55E'; // 绿色
+        callTypeBg = '#DCFCE7';
+      }
+      // 条件注释：HTTP 状态码 >= 400 表示失败，可能触发 fallback
+      if (l.response_status >= 400 && l.duration > 0) {
+        callType = 'HTTP失败→降级';
+        callTypeColor = '#F59E0B'; // 橙色
+        callTypeBg = '#FEF3C7';
+      }
       return '<tr>' +
         '<td>' + new Date(l.timestamp).toLocaleString() + '</td>' +
         '<td>' + l.tool_name + '</td>' +
         '<td>' + (l.method || 'N/A') + '</td>' +
         '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">' + (l.url || '-') + '</td>' +
+        '<td><span style="padding:2px 8px;border-radius:4px;background:' + callTypeBg + ';color:' + callTypeColor + ';">' + callType + '</span></td>' +
         '<td><span style="padding:2px 8px;border-radius:4px;background:' + (l.response_status >= 400 ? '#FEE2E2;color:#B91C1C' : '#DCFCE7;color:#166534') + ';">' + (l.response_status || 'OK') + '</span></td>' +
         '<td>' + (l.duration ? l.duration + 'ms' : '-') + '</td>' +
       '</tr>';
@@ -580,17 +741,16 @@
     const severity = document.getElementById('alert-severity-filter').value;
     const resolved = document.getElementById('alert-resolved-filter').value;
     try {
-      let alerts;
-      if (resolved === 'false') {
-        alerts = await api('/api/alerts?unresolved=true');
-      } else {
-        alerts = await api('/api/alerts?limit=50');
-      }
+      // 条件注释：使用正确的 API 路径 /api/alert/history
+      const alertsData = await api('/api/alert/history?limit=50');
+      let alerts = alertsData.alerts || alertsData;
       if (severity) {
         alerts = alerts.filter(a => a.severity === severity);
       }
       if (resolved === 'true') {
         alerts = alerts.filter(a => a.resolved_at);
+      } else if (resolved === 'false') {
+        alerts = alerts.filter(a => !a.resolved_at);
       }
       renderAlertsTable(alerts);
     } catch (err) {
@@ -623,7 +783,8 @@
 
   async function resolveAlert(id) {
     showConfirmDialog('确定要解决此告警吗？', async () => {
-      await api('/api/alerts/' + id + '/resolve', 'POST');
+      // 条件注释：使用正确的 API 路径
+      await api('/api/alert/history/' + id + '/resolve', 'POST');
       showToast('告警已解决', 'success');
       loadAlerts();
     }, '解决告警');
@@ -631,11 +792,9 @@
 
   async function resolveAllAlerts() {
     showConfirmDialog('确定要批量解决所有未解决的告警吗？', async () => {
-      const alerts = await api('/api/alerts?unresolved=true');
-      for (const a of alerts) {
-        await api('/api/alerts/' + a.id + '/resolve', 'POST');
-      }
-      showToast('已批量解决 ' + alerts.length + ' 个告警', 'success');
+      // 条件注释：使用批量解决 API
+      const result = await api('/api/alert/history/resolve-all', 'POST');
+      showToast('已批量解决 ' + result.count + ' 个告警', 'success');
       loadAlerts();
     }, '批量解决告警');
   }
@@ -752,12 +911,32 @@
           document.getElementById('config-error').style.display = 'block';
           return;
         } else {
+          // 条件注释：检测是否需要重启，需要重启时显示特殊警告
           showConfirmDialog('保存配置将自动创建备份，确定要保存吗？', async () => {
-            await api('/api/config', 'PUT', config);
-            showToast('配置已保存并自动备份', 'success');
-            document.getElementById('config-error').style.display = 'none';
-            const backups = await api('/api/config/backups');
-            renderBackupList(backups);
+            try {
+              const result = await api('/api/config', 'PUT', config);
+              // 条件注释：根据响应判断是否需要重启
+              if (result.restartScheduled) {
+                // 需要重启时显示警告消息
+                showToast(result.warning || '⚠️ 服务即将重启，请稍候...', 'warning');
+                document.getElementById('config-error').style.display = 'none';
+                // 条件注释：显示重启提示，等待服务重启
+                setTimeout(() => {
+                  showToast('服务正在重启，页面将自动刷新...', 'info');
+                  // 条件注释：5秒后刷新页面，等待新服务启动
+                  setTimeout(() => location.reload(), 5000);
+                }, 2000);
+              } else {
+                // 热更新成功
+                showToast(result.message || '配置已保存并热更新生效', 'success');
+                document.getElementById('config-error').style.display = 'none';
+                const backups = await api('/api/config/backups');
+                renderBackupList(backups);
+              }
+            } catch (saveError) {
+              document.getElementById('config-error').textContent = '保存失败: ' + saveError.message;
+              document.getElementById('config-error').style.display = 'block';
+            }
           }, '保存配置确认');
         }
       } catch (e) {
@@ -1168,4 +1347,7 @@
 
   // 初始化配置说明面板
   renderConfigReference();
+
+  // 初始化熔断器配置
+  loadCircuitBreakerConfig();
 </script>

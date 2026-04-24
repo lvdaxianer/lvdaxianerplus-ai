@@ -26,6 +26,7 @@ import type { Config } from '../config/types.js';
 import { logger } from '../middleware/logger.js';
 import { registerListToolsHandler, registerCallToolHandler } from './server-handlers.js';
 import { startHttpServer, closeHttpServer } from '../routes/http-server.js';
+import { setCorsHeaders } from '../routes/handlers/response.js';
 import http from 'http';
 
 // 导入 Server 类型用于 SSE 连接存储
@@ -162,35 +163,40 @@ export async function startStdioServer(config: Config): Promise<void> {
  *
  * HTTP Server：
  * - SSE 端口（ssePort）：处理 /sse 和 /message（MCP 协议）
- * - Dashboard 端口（ssePort - 1）：处理 Dashboard、Health、Metrics 等
+ * - Dashboard 端口（httpPort）：处理 Dashboard、Health、Metrics 等
  *
  * @param config - 工具配置
  * @param ssePort - SSE 服务端口（默认 11114）
+ * @param httpPort - Dashboard HTTP 端口（可选，默认 ssePort - 1）
  *
  * @author lvdaxianerplus
  * @date 2026-04-22
  */
-export async function startSseServer(config: Config, ssePort: number = 11114): Promise<void> {
+export async function startSseServer(config: Config, ssePort: number = 11114, httpPort?: number): Promise<{ ssePort: number; httpPort: number }> {
   // ===== 启动 Dashboard HTTP Server（独立端口）=====
-  // Dashboard HTTP Server 使用 SSE 端口减 1（如 11114 → 11113）
-  const httpPort = ssePort - 1;
-
-  logger.info('[SSE] 启动 Dashboard HTTP Server', { httpPort });
+  const dashboardPort = httpPort ?? ssePort - 1;
 
   // 条件注释：调用 startHttpServer 启动 Dashboard HTTP Server
-  // 功能：提供 Dashboard、Health、Metrics、Cache 等管理接口
-  await startHttpServer({ config, port: httpPort });
-
-  logger.info('[SSE] Dashboard HTTP Server 已启动', { httpPort, dashboardUrl: `http://localhost:${httpPort}/dashboard` });
+  const httpResult = await startHttpServer({ config, port: dashboardPort });
+  const actualHttpPort = httpResult.port;
 
   // ===== 启动 SSE Server（MCP 协议）=====
-  // 存储活跃的 SSE 连接（sessionId -> { server, transport }）
   const activeConnections: Map<string, { server: Server; transport: SSEServerTransport }> = new Map();
 
   // 创建 HTTP 服务处理 SSE 连接和消息
   const httpServer = http.createServer(async (req, res) => {
     const url = req.url ?? '/';
     const method = req.method ?? 'GET';
+
+    // 条件注释：设置 CORS 头（MCP Inspector Proxy 需要 CORS 支持）
+    setCorsHeaders(res);
+
+    // 条件注释：处理 OPTIONS 预检请求
+    if (method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
 
     // 条件注释：GET /sse 建立 SSE 流（每个连接创建新的 Server）
     if (method === 'GET' && url === '/sse') {
@@ -250,11 +256,11 @@ export async function startSseServer(config: Config, ssePort: number = 11114): P
     }
   });
 
-  // 监听端口
-  httpServer.listen(ssePort, 'localhost', () => {
-    logger.info('[服务器] SSE Server 已启动', { port: ssePort, endpoint: '/sse' });
+  // 监听端口（监听所有接口，允许外部连接）
+  httpServer.listen(ssePort, '0.0.0.0', () => {
+    logger.info('[SSE] SSE Server 已启动', { port: ssePort });
   });
 
-  // 记录启动成功日志
-  logger.info('[服务器] MCP SSE Server 已启动，等待连接');
+  // 条件注释：返回实际端口信息
+  return { ssePort, httpPort: actualHttpPort };
 }

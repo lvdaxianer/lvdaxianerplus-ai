@@ -252,6 +252,22 @@ function createTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_trace_logs_parent ON trace_logs(parent_trace_id);
   `);
 
+  // Circuit breaker config table - 熔断器配置（单行配置）
+  // 条件注释：存储全局熔断器配置，优先级高于配置文件
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS circuit_breaker_config (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      enabled INTEGER NOT NULL DEFAULT 0,
+      failure_threshold INTEGER NOT NULL DEFAULT 5,
+      success_threshold INTEGER NOT NULL DEFAULT 2,
+      half_open_time INTEGER NOT NULL DEFAULT 30000,
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    INSERT OR IGNORE INTO circuit_breaker_config (id, enabled, failure_threshold, success_threshold, half_open_time)
+    VALUES (1, 0, 5, 2, 30000);
+  `);
+
   logger.info('[SQLite] Tables created successfully');
 }
 
@@ -277,6 +293,62 @@ export function getDatabase(): Database.Database | null {
  */
 export function getDatabasePath(): string {
   return dbPath;
+}
+
+/**
+ * Check if database needs reconnection (path changed)
+ *
+ * @param newDbPath - New database path from config
+ * @returns True if path changed and needs reconnection
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function needsReconnection(newDbPath: string): boolean {
+  // 条件注释：路径为空或与当前路径相同时不需要重连，不同时需要
+  if (!newDbPath || newDbPath === dbPath) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Reinitialize database with new path
+ *
+ * WARNING: This will close the current database connection.
+ * Data migration is NOT automatic - old data remains in the old database file.
+ *
+ * @param config - New SQLite logging configuration
+ * @returns New Database instance
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function reinitDatabase(config: SQLiteLoggingConfig): Database.Database {
+  const newDbPath = config.dbPath ?? './data/logs.db';
+
+  // 条件注释：路径相同时不重新初始化，路径不同时执行重连
+  if (newDbPath === dbPath) {
+    logger.info('[SQLite] Database path unchanged, skipping reinit');
+    return db!;
+  } else {
+    // 路径变更，需要重新初始化
+    const oldDbPath = dbPath;
+
+    // Close old connection
+    closeDatabase();
+
+    // Log warning about data not being migrated
+    logger.warn('[SQLite] Database path changed, data NOT migrated', {
+      oldPath: oldDbPath,
+      newPath: newDbPath,
+      warning: 'Historical data remains in old database file. Manual migration required if needed.'
+    });
+
+    // Initialize new database
+    return initDatabase(config);
+  }
 }
 
 /**

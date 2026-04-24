@@ -1,5 +1,35 @@
 <!-- Config Page - 配置编辑页面 -->
 <div id="page-config" class="page">
+  <!-- 重启警告提示 -->
+  <div class="config-warning-banner" style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 1px solid #F59E0B; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px;">
+    <svg style="width: 24px; height: 24px; color: #D97706; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; color: #92400E; font-size: 15px; margin-bottom: 8px;">⚠️ 配置保存提示</div>
+      <div style="color: #78350F; font-size: 13px; line-height: 1.6;">
+        <p style="margin: 0 0 8px 0;"><strong>重启类配置</strong>：修改以下配置项后，服务会<strong>立即重启</strong>，期间会出现短暂不可访问（约 5 秒）：</p>
+        <ul style="margin: 0 0 12px 0; padding-left: 20px; color: #92400E;">
+          <li>sqlite.dbPath（数据库路径）</li>
+          <li>httpPort / ssePort（端口配置）</li>
+          <li>transport（传输模式）</li>
+          <li>tools（工具列表）</li>
+          <li>rateLimit / concurrency（限流/并发配置）</li>
+        </ul>
+        <p style="margin: 0 0 8px 0;"><strong>热更新类配置</strong>：以下配置项修改后<strong>立即生效</strong>，无需重启：</p>
+        <ul style="margin: 0 0 12px 0; padding-left: 20px; color: #92400E;">
+          <li>cache（缓存配置）</li>
+          <li>mock（Mock 配置）</li>
+          <li>logging.level（日志级别）</li>
+          <li>circuitBreaker（熔断器配置）</li>
+        </ul>
+        <p style="margin: 0; padding: 8px 12px; background: #FEF3C7; border-radius: 6px; border-left: 3px solid #F59E0B;">
+          <strong>💡 端口查找机制</strong>：如果配置的端口被占用，服务会自动按顺序查找下一个可用端口（如 11119 → 11120 → 11121...）。重启后请留意页面顶部显示的<strong>实际端口</strong>。
+        </p>
+      </div>
+    </div>
+  </div>
+
   <div class="bento-grid">
     <div class="card span-6">
       <div class="card-title">

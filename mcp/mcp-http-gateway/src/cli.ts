@@ -21,12 +21,20 @@ import { initTrace } from './features/trace.js';
 import { initAlert } from './features/alert.js';
 import { initConfigVersion } from './features/config-version.js';
 import { initCanary } from './features/canary.js';
+import {
+  loadCircuitBreakerConfigFromDb,
+  initCircuitBreakerConfigToDb,
+  updateCircuitBreakerConfig,
+  getCircuitBreakerConfig
+} from './features/circuit-breaker.js';
+import { DEFAULT_CIRCUIT_BREAKER } from './config/types.js';
 import { setLogLevel, initFileLogging } from './middleware/logger.js';
 import { logger } from './middleware/logger.js';
 import { initDatabase, closeDatabase, cleanOldRecords, getDefaultDbPath } from './database/connection.js';
 import { initSqliteLogger, stopSqliteLogger } from './database/sqlite-logger.js';
 import { initAlertLogger } from './database/alert-logger.js';
 import { initMockHandler } from './features/mock.js';
+import { scheduleRestart } from './features/restart.js';
 import { loadToolCacheConfigs } from './routes/handlers/tool-cache.handler.js';
 import { DEFAULT_RATE_LIMIT, DEFAULT_CONCURRENCY, DEFAULT_TRACE } from './config/types.js';
 
@@ -40,19 +48,56 @@ interface CliArgs {
   sqlitePath: string | null;
 }
 
+/**
+ * 获取参数值
+ *
+ * 支持两种格式：
+ * 1. --key=value（等号格式）
+ * 2. --key value（空格格式）
+ *
+ * @param args - 命令行参数数组
+ * @param key - 参数名称（不含 --）
+ * @returns 参数值，如果不存在返回 undefined
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+function getArgValue(args: string[], key: string): string | undefined {
+  // 条件注释：先检查等号格式 --key=value
+  const eqArg = args.find((a) => a.startsWith(`--${key}=`));
+  if (eqArg) {
+    return eqArg.split('=')[1];
+  }
+
+  // 条件注释：检查空格格式 --key value
+  const keyIndex = args.indexOf(`--${key}`);
+  if (keyIndex !== -1 && keyIndex + 1 < args.length) {
+    const nextArg = args[keyIndex + 1];
+    // 条件注释：下一个参数不能是另一个选项（以 -- 开头）
+    if (!nextArg.startsWith('--')) {
+      return nextArg;
+    }
+  }
+
+  return undefined;
+}
+
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
 
-  const configPath = args.find((a) => !a.startsWith('--')) ?? './tools.json';
+  // 条件注释：配置文件路径优先级：--config 参数 > 位置参数 > 默认值
+  const configFromArg = getArgValue(args, 'config');
+  const configFromPosition = args.find((a) => !a.startsWith('--'));
+  const configPath = configFromArg ?? configFromPosition ?? './tools.json';
 
   return {
     configPath,
     httpEnabled: args.includes('--http'),
-    transport: args.find((a) => a.startsWith('--transport='))?.split('=')[1] ?? 'stdio',
-    ssePort: parseInt(args.find((a) => a.startsWith('--sse-port='))?.split('=')[1] ?? '11113', 10),
-    httpPort: parseInt(args.find((a) => a.startsWith('--http-port='))?.split('=')[1] ?? '11112', 10),
+    transport: getArgValue(args, 'transport') ?? 'stdio',
+    ssePort: parseInt(getArgValue(args, 'sse-port') ?? '11113', 10),
+    httpPort: parseInt(getArgValue(args, 'http-port') ?? '11112', 10),
     sqliteEnabled: args.includes('--sqlite'),
-    sqlitePath: args.find((a) => a.startsWith('--sqlite-path='))?.split('=')[1] ?? null,
+    sqlitePath: getArgValue(args, 'sqlite-path') ?? null,
   };
 }
 
@@ -71,36 +116,23 @@ async function main(): Promise<void> {
   }
 
   // Initialize cache
-  // 条件：配置中存在缓存配置时初始化缓存模块
   if (config.cache) {
     initCache(config.cache);
-  } else {
-    // 无缓存配置：跳过初始化
-    logger.info('[启动] Cache not configured, skipping initialization');
   }
 
   // Set log level
-  // 条件：配置中指定了日志级别时设置，否则使用默认级别 info
   setLogLevel(config.logging?.level ?? 'info');
 
-  // Initialize file logging if enabled
-  // 条件：文件日志启用时初始化文件日志模块
+  // Initialize file logging
   if (config.logging?.file?.enabled) {
     initFileLogging(config.logging.file);
-    logger.info('[启动] File logging enabled', { logFile: logger.getLogFile() });
-  } else {
-    // 文件日志禁用：跳过初始化
-    logger.info('[启动] File logging disabled, skipping initialization');
   }
 
-  // Initialize SQLite database (默认启用)
-  // 条件：SQLite 日志默认启用，除非配置文件明确禁用
-  // 优先级：CLI 参数 > 配置文件 enabled: false > 默认启用
+  // Initialize SQLite database (必须在熔断器之前，因为熔断器需要数据库表)
   const sqliteDisabledInConfig = config.sqlite?.enabled === false;
   const shouldEnableSqlite = cliArgs.sqliteEnabled || cliArgs.sqlitePath || !sqliteDisabledInConfig;
 
   if (shouldEnableSqlite) {
-    // 确定 SQLite 配置：CLI 参数优先，其次配置文件，最后默认
     const sqliteConfig = {
       enabled: true,
       dbPath: cliArgs.sqlitePath ?? config.sqlite?.dbPath ?? getDefaultDbPath(),
@@ -110,152 +142,86 @@ async function main(): Promise<void> {
     initDatabase(sqliteConfig);
     initSqliteLogger(sqliteConfig);
     initAlertLogger({ logDir: config.alert?.logDir ?? './logs' });
-
-    // Clean old records on startup
-    const maxDays = sqliteConfig.maxDays;
-    cleanOldRecords(maxDays);
-    logger.info('[启动] SQLite logging enabled', { dbPath: sqliteConfig.dbPath, source: cliArgs.sqlitePath ? 'CLI' : config.sqlite?.dbPath ? 'config' : 'default' });
-
-    // 加载工具级缓存配置
-    // 条件注释：传入 config 参数，首次启动时同步配置文件到数据库
+    cleanOldRecords(sqliteConfig.maxDays);
     loadToolCacheConfigs(config);
-  } else {
-    // SQLite 日志禁用：跳过初始化
-    logger.info('[启动] SQLite logging disabled by config');
   }
+
+  // Initialize circuit breaker (必须在数据库之后，因为需要读取/写入数据库表)
+  // 条件注释：熔断器配置优先级：数据库配置 > 配置文件配置 > DEFAULT_CIRCUIT_BREAKER
+  const configFromFile = config.circuitBreaker ?? DEFAULT_CIRCUIT_BREAKER;
+  initCircuitBreakerConfigToDb(configFromFile);
+  loadCircuitBreakerConfigFromDb();
 
   // Initialize Mock handler
-  // 条件：配置了 Mock 时初始化 Mock 处理器
   if (config.mock) {
     initMockHandler(config.mock);
-    logger.info('[启动] Mock handler initialized', { enabled: config.mock.enabled });
-  } else {
-    // 无 Mock 配置：跳过初始化
-    logger.info('[启动] Mock not configured, skipping initialization');
   }
 
-  // Initialize Rate Limit handler
-  // 条件：限流配置存在时初始化限流管理器
-  // 使用默认配置合并用户配置
-  const rateLimitConfig = {
-    ...DEFAULT_RATE_LIMIT,
-    ...config.rateLimit,
-  };
-  initRateLimit(rateLimitConfig);
-  logger.info('[启动] Rate limit initialized', {
-    enabled: rateLimitConfig.enabled,
-    type: rateLimitConfig.type,
-    globalLimit: rateLimitConfig.globalLimit,
-  });
+  // Initialize Rate Limit
+  initRateLimit({ ...DEFAULT_RATE_LIMIT, ...config.rateLimit });
 
-  // Initialize Concurrency handler
-  // 条件：并发控制配置存在时初始化并发管理器
-  // 使用默认配置合并用户配置
-  const concurrencyConfig = {
-    ...DEFAULT_CONCURRENCY,
-    ...config.concurrency,
-  };
-  initConcurrency(concurrencyConfig);
-  logger.info('[启动] Concurrency initialized', {
-    enabled: concurrencyConfig.enabled,
-    maxConcurrent: concurrencyConfig.maxConcurrent,
-    queueSize: concurrencyConfig.queueSize,
-  });
+  // Initialize Concurrency
+  initConcurrency({ ...DEFAULT_CONCURRENCY, ...config.concurrency });
 
-  // Initialize Trace handler
-  // 条件：链路追踪配置存在时初始化追踪管理器
-  // 使用默认配置合并用户配置
-  const traceConfig = {
-    ...DEFAULT_TRACE,
-    ...config.trace,
-  };
-  initTrace(traceConfig);
-  logger.info('[启动] Trace initialized', {
-    enabled: traceConfig.enabled,
-    headerName: traceConfig.headerName,
-  });
+  // Initialize Trace
+  initTrace({ ...DEFAULT_TRACE, ...config.trace });
 
-  // Initialize Alert handler
-  // 条件：告警配置存在时初始化告警管理器
-  // 使用默认配置合并用户配置
-  const alertConfig = config.alert ?? { enabled: false };
-  initAlert(alertConfig);
-  logger.info('[启动] Alert initialized', {
-    enabled: alertConfig.enabled,
-  });
+  // Initialize Alert
+  initAlert(config.alert ?? { enabled: false });
 
-  // Initialize Config Version handler
-  // 条件：配置版本控制默认启用
+  // Initialize Config Version
   initConfigVersion({ enabled: true });
-  logger.info('[启动] Config version control initialized');
 
-  // Initialize Canary Release handler
-  // 条件：灰度发布默认启用
+  // Initialize Canary Release
   initCanary({ enabled: true });
-  logger.info('[启动] Canary release initialized');
-
-  logger.info('[启动] MCP HTTP Gateway starting...');
-  logger.info('[启动] Loaded tools', { count: Object.keys(config.tools).length });
 
   // Start HTTP server for health checks and dashboard (默认启用)
   // 条件：HTTP 服务默认启用，除非配置文件明确禁用 metrics 和 healthCheck
-  // 优先级：--http 参数 > 配置文件禁用 > 默认启用
   const metricsDisabled = config.metrics?.enabled === false;
   const healthCheckDisabled = config.healthCheck?.enabled === false;
-  // 使用括号明确优先级：--http 参数或（配置未禁用）就启用
   const shouldStartHttpServer = cliArgs.httpEnabled || (!(metricsDisabled || healthCheckDisabled));
 
-  if (shouldStartHttpServer) {
-    // 条件注释：启动 HTTP 服务，端口可能因冲突被自动调整
+  // 条件注释：记录 HTTP 服务状态（不打印具体 URL，最后统一打印）
+  let actualHttpPort = cliArgs.httpPort;
+
+  // 条件注释：STDIO 模式下在 cli.ts 中启动 HTTP Server
+  if (shouldStartHttpServer && cliArgs.transport === 'stdio') {
     const httpResult = await startHttpServer({ config, port: cliArgs.httpPort, configPath: cliArgs.configPath });
-    const actualHttpPort = httpResult.port;
-    if (actualHttpPort !== cliArgs.httpPort) {
-      logger.warn('[启动] HTTP 端口已调整', { requested: cliArgs.httpPort, actual: actualHttpPort });
-    }
-    logger.info('[启动] Dashboard available', { url: `http://localhost:${actualHttpPort}/dashboard` });
-    logger.info('[启动] Health check available', { url: `http://localhost:${actualHttpPort}/health` });
-  } else {
-    // HTTP 服务禁用：跳过启动
-    logger.info('[启动] HTTP server disabled by config');
+    actualHttpPort = httpResult.port;
   }
 
   // Start config hot reload if enabled
-  // 条件：配置热更新启用时启动文件监听
   if (config.hotReload?.enabled) {
-    watchConfig(cliArgs.configPath, (newConfig) => {
-      logger.info('[配置热更新] Configuration reloaded');
-      // Re-initialize components with new config
-      // 条件：新配置包含缓存配置时重新初始化
-      if (newConfig.cache) {
-        initCache(newConfig.cache);
-      }
-      // 条件：新配置包含 Mock 配置时重新初始化
-      if (newConfig.mock) {
-        initMockHandler(newConfig.mock);
-      }
+    watchConfig(cliArgs.configPath, () => {
+      scheduleRestart('Configuration file changed externally');
     }, config.hotReload);
-    logger.info('[启动] Config hot reload enabled');
-  } else {
-    // 配置热更新禁用：跳过启动
-    logger.info('[启动] Config hot reload disabled, skipping initialization');
   }
 
   // Setup graceful shutdown
   setupGracefulShutdown();
 
   // Start MCP Server based on transport mode
-  // 条件注释：根据 transport 参数选择 STDIO 或 SSE 模式
-  if (cliArgs.transport === 'sse') {
-    // SSE 模式：持久运行，支持多会话连接
+  if (cliArgs.transport === 'dual') {
+    // DUAL 模式：同时启动 SSE 和 STDIO
     try {
-      await startSseServer(config, cliArgs.ssePort);
-      logger.info('[启动] SSE Server started', { ssePort: cliArgs.ssePort });
+      await startSseServer(config, cliArgs.ssePort, cliArgs.httpPort);
+      await startStdioServer(config);
+    } catch (error) {
+      logger.error('[启动] Failed to start dual mode servers', { error });
+      process.exit(1);
+    }
+  } else if (cliArgs.transport === 'sse') {
+    // SSE 模式：持久运行
+    try {
+      const sseResult = await startSseServer(config, cliArgs.ssePort, cliArgs.httpPort);
+      // 条件注释：获取实际使用的端口（可能因冲突调整）
+      actualHttpPort = sseResult.httpPort;
     } catch (error) {
       logger.error('[启动] Failed to start SSE server', { error });
       process.exit(1);
     }
   } else {
-    // STDIO 模式：每次会话启动新进程
+    // STDIO 模式
     try {
       await startStdioServer(config);
     } catch (error) {
@@ -263,6 +229,16 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   }
+
+  // 条件注释：启动完成，打印最终访问地址（用户关心的核心信息）
+  logger.info('========================================');
+  logger.info('MCP HTTP Gateway 已启动');
+  logger.info('========================================');
+  logger.info(`SSE 连接:     http://localhost:${cliArgs.ssePort}/sse`);
+  logger.info(`Dashboard:    http://localhost:${actualHttpPort}/dashboard`);
+  logger.info(`Health:       http://localhost:${actualHttpPort}/health`);
+  logger.info(`API:          http://localhost:${actualHttpPort}/api`);
+  logger.info('========================================');
 }
 
 /**

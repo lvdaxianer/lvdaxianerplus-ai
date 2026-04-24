@@ -1,6 +1,75 @@
 <!-- Overview Page - 总览页面 -->
 <div id="page-overview" class="page active">
   <div class="bento-grid">
+    <!-- 功能说明 -->
+    <div class="card span-12" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <div class="card-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2);">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px; color: white;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.95-.083-1.422-.908-2.305l-.548-.547z"/></svg>
+        MCP Gateway 功能指南
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-top: 12px;">
+        <!-- Mock 模式 -->
+        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="padding: 4px 12px; border-radius: 6px; background: #22C55E; color: white; font-weight: 600; font-size: 13px;">Mock 模式</span>
+            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">不发起 HTTP 请求</span>
+          </div>
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.9);">
+            <p style="margin-bottom: 8px;"><strong>触发方式：</strong>在「工具管理」页面开启工具的 Mock</p>
+            <p style="margin-bottom: 8px;"><strong>效果：</strong>直接返回配置的 Mock 数据，跳过 HTTP 调用</p>
+            <p style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+              <strong style="color: #4ADE80;">⏱️ 延迟说明：</strong><br>
+              Mock 配置的 <code style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;">delay</code> 字段<br>
+              <span style="color: rgba(255,255,255,0.8);">是<strong>模拟的响应延迟</strong>（如 0ms、5000ms）</span><br>
+              <span style="color: #4ADE80;">→ 用于测试延迟场景，<strong>不发任何 HTTP</strong></span>
+            </p>
+            <p style="color: rgba(255,255,255,0.7);"><strong>适用场景：</strong>开发测试、离线调试、模拟异常响应</p>
+          </div>
+        </div>
+        <!-- 降级机制 -->
+        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="padding: 4px 12px; border-radius: 6px; background: #F59E0B; color: white; font-weight: 600; font-size: 13px;">降级机制</span>
+            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">HTTP 失败后的兜底</span>
+          </div>
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.9);">
+            <p style="margin-bottom: 8px;"><strong>触发条件：</strong></p>
+            <p style="margin-bottom: 4px; padding-left: 12px;">• HTTP 状态码 ≥ 400（40x/50x）</p>
+            <p style="margin-bottom: 4px; padding-left: 12px;">• 网络超时或连接失败</p>
+            <p style="margin-bottom: 4px; padding-left: 12px;">• 响应数据满足降级条件模板</p>
+            <p style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+              <strong style="color: #FCD34D;">⏱️ 超时说明：</strong><br>
+              工具配置的 <code style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;">timeout</code> 字段<br>
+              <span style="color: rgba(255,255,255,0.8);">是<strong>HTTP 请求超时时间</strong>（如 30000ms）</span><br>
+              <span style="color: #FCD34D;">→ 超过此时间 HTTP 失败，<strong>触发 Mock 兜底</strong></span>
+            </p>
+            <p style="margin-bottom: 8px;"><strong>降级顺序：</strong>缓存数据 → Mock 数据 → 返回错误</p>
+          </div>
+        </div>
+        <!-- 熔断机制 -->
+        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="padding: 4px 12px; border-radius: 6px; background: #EF4444; color: white; font-weight: 600; font-size: 13px;">熔断机制</span>
+            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">防止级联故障</span>
+          </div>
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.9);">
+            <p style="margin-bottom: 8px;"><strong>触发条件：</strong>连续失败次数达到阈值</p>
+            <p style="margin-bottom: 8px;"><strong>效果：</strong>熔断器 OPEN → 直接跳过 HTTP，触发降级</p>
+            <p style="margin-bottom: 8px;"><strong>恢复：</strong>半开启状态尝试请求，成功后自动恢复</p>
+            <p style="color: rgba(255,255,255,0.7);"><strong>配置：</strong>失败阈值、恢复时间可在配置文件设置</p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 12px; color: rgba(255,255,255,0.9); line-height: 1.8;">
+        <p style="margin-bottom: 8px;"><strong>💡 关键区别：</strong>Mock 模式 = 主动跳过 HTTP（测试用）；降级/熔断 = HTTP 失败后的被动兜底（生产用）</p>
+        <p style="padding: 8px 12px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+          <strong style="color: #4ADE80;">⏱️ 延迟时间对比：</strong><br>
+          <span style="color: #4ADE80;">Mock 配置 <code style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;">delay</code></span> = 模拟延迟，<strong>不发 HTTP</strong>，纯粹用于测试延迟响应<br>
+          <span style="color: #FCD34D;">工具配置 <code style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;">timeout</code></span> = HTTP 超时，<strong>超过此时间触发降级</strong>，用 Mock 兜底
+        </p>
+      </div>
+    </div>
+
     <!-- Stats Cards -->
     <div class="card span-3">
       <div class="card-title">
@@ -47,7 +116,7 @@
       <div class="table-wrapper">
         <table>
           <thead><tr><th>工具</th><th>状态</th><th>失败</th><th>成功</th></tr></thead>
-          <tbody>
+          <tbody id="circuit-breakers-body">
             <% Object.entries(data.circuitBreakers).forEach(([name, cb]) => { %>
             <tr>
               <td><div style="display:flex;flex-direction:column;gap:2px;"><strong><%= name %></strong><span style="font-size:12px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;"><%= data.toolDescriptions[name] || '' %></span></div></td>
@@ -58,6 +127,46 @@
             <% }) %>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Circuit Breaker Config -->
+    <div class="card span-6" id="circuit-breaker-config-card">
+      <div class="card-title">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        熔断器配置
+        <button class="btn btn-primary" style="margin-left: auto; padding: 4px 12px; font-size: 12px;" onclick="resetAllCircuitBreakers()">重置所有状态</button>
+      </div>
+      <div class="form-row" style="margin-bottom: 16px;">
+        <div class="form-group">
+          <label class="form-label">启用熔断器</label>
+          <select id="cb-enabled" class="form-input" style="width: 100px;">
+            <option value="true">开启</option>
+            <option value="false">关闭</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">失败阈值（触发熔断）</label>
+          <input type="number" id="cb-failureThreshold" class="form-input" style="width: 80px;" min="1" max="100" value="5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">成功阈值（恢复）</label>
+          <input type="number" id="cb-successThreshold" class="form-input" style="width: 80px;" min="1" max="100" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">半开等待时间（毫秒）</label>
+          <input type="number" id="cb-halfOpenTime" class="form-input" style="width: 100px;" min="1000" max="300000" value="30000">
+        </div>
+        <div class="form-group" style="flex: 0 0 auto;">
+          <label class="form-label">&nbsp;</label>
+          <button class="btn btn-primary" onclick="updateCircuitBreakerConfig()">保存配置</button>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); padding: 8px; background: #F8FAFC; border-radius: 6px;">
+        <strong>说明：</strong>
+        <span>失败阈值 = 连续失败多少次触发熔断（OPEN）；</span>
+        <span>成功阈值 = 半开状态下连续成功多少次恢复（CLOSED）；</span>
+        <span>半开等待时间 = 熔断后等待多久进入半开状态（HALF_OPEN）</span>
       </div>
     </div>
 

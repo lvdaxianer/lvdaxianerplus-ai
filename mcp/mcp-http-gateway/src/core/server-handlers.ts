@@ -48,6 +48,7 @@ import {
   buildMetadata,
   getAttemptConfig,
 } from './attempt-tracking.js';
+import { recordFailure, checkCircuitBreaker } from '../features/circuit-breaker.js';
 import {
   generateCallHint,
   addCallHintToDescription,
@@ -251,6 +252,20 @@ export function registerCallToolHandler(server: Server, config: Config): void {
       // 记录警告日志
       logger.warn('[尝试追踪] 超过最大尝试次数', { toolName: name, attemptCount, maxAttempts });
 
+      // 条件注释：熔断器启用时记录失败（用于熔断器状态流转）
+      if (config.circuitBreaker?.enabled) {
+        // 先检查熔断器状态（触发 OPEN→HALF_OPEN 转换）
+        checkCircuitBreaker(name);
+        // 记录失败
+        recordFailure(name);
+        logger.warn('[熔断器] 尝试次数超限，记录失败', {
+          toolName: name,
+          attemptCount,
+          maxAttempts,
+          threshold: config.circuitBreaker.failureThreshold
+        });
+      }
+
       // 记录指标（失败状态）
       recordMetric(name, 'error');
 
@@ -277,6 +292,17 @@ export function registerCallToolHandler(server: Server, config: Config): void {
 
       // 记录尝试（用于尝试追踪）
       recordAttempt(name, error);
+
+      // 条件注释：熔断器启用时记录失败（参数缺失也是失败）
+      if (config.circuitBreaker?.enabled) {
+        checkCircuitBreaker(name);
+        recordFailure(name);
+        logger.warn('[熔断器] 参数缺失，记录失败', {
+          toolName: name,
+          missingParams,
+          threshold: config.circuitBreaker.failureThreshold
+        });
+      }
 
       // 记录指标（失败状态）
       recordMetric(name, 'error');

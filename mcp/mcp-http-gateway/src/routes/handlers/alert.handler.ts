@@ -23,6 +23,8 @@ import {
   queryAlertHistory,
   initAlert,
   cleanAlertHistory,
+  resolveAlert,
+  resolveAllAlerts,
 } from '../../features/alert.js';
 import { sendJsonResponse } from './response.js';
 
@@ -281,6 +283,99 @@ export function createAlertCleanupHandler(config: Config): RouteHandler {
 }
 
 /**
+ * 创建解决单个告警处理器
+ *
+ * @param config - 服务配置
+ * @returns RouteHandler
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function createAlertResolveHandler(config: Config): RouteHandler {
+  return async function alertResolveHandler(
+    req: IncomingMessage,
+    res: ServerResponse,
+    params?: Record<string, string>
+  ): Promise<boolean> {
+    // 条件注释：只支持 POST 方法
+    if (req.method !== 'POST') {
+      sendJsonResponse(res, 405, { error: 'Method not allowed' });
+      return true;
+    }
+
+    // 条件注释：从 params.remaining 解析告警 ID
+    // remaining 格式: 'alert-id/resolve'
+    const remaining = params?.remaining;
+    if (!remaining) {
+      sendJsonResponse(res, 400, { error: 'Alert ID required' });
+      return true;
+    }
+
+    // 条件注释：解析 remaining 路径，提取 ID
+    // 格式: 'alert-xxx/resolve' 或 'alert-xxx'
+    const parts = remaining.split('/');
+    const id = parts[0];
+    const action = parts[1];
+
+    // 条件注释：只有 /resolve 结尾的路径才处理
+    if (action !== 'resolve') {
+      sendJsonResponse(res, 400, { error: 'Invalid action', remaining });
+      return true;
+    }
+
+    // 条件注释：解决告警
+    const success = resolveAlert(id);
+    if (success) {
+      sendJsonResponse(res, 200, {
+        success: true,
+        message: 'Alert resolved',
+        id,
+      });
+    } else {
+      sendJsonResponse(res, 404, {
+        success: false,
+        error: 'Alert not found',
+        id,
+      });
+    }
+
+    return true;
+  };
+}
+
+/**
+ * 创建批量解决告警处理器
+ *
+ * @param config - 服务配置
+ * @returns RouteHandler
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function createAlertResolveAllHandler(config: Config): RouteHandler {
+  return async function alertResolveAllHandler(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<boolean> {
+    // 条件注释：只支持 POST 方法
+    if (req.method !== 'POST') {
+      sendJsonResponse(res, 405, { error: 'Method not allowed' });
+      return true;
+    }
+
+    // 条件注释：批量解决所有未解决的告警
+    const count = resolveAllAlerts();
+    sendJsonResponse(res, 200, {
+      success: true,
+      message: 'All alerts resolved',
+      count,
+    });
+
+    return true;
+  };
+}
+
+/**
  * 告警管理路由策略配置
  *
  * @param config - 服务配置
@@ -313,6 +408,22 @@ export function getAlertRoutes(config: Config): Array<{
       methods: ['GET'],
       handler: createAlertHistoryHandler(config),
       priority: 100,
+    },
+    {
+      name: 'alert-resolve',
+      path: '/api/alert/history/',
+      matchType: 'prefix',
+      methods: ['POST'],
+      handler: createAlertResolveHandler(config),
+      priority: 90,
+    },
+    {
+      name: 'alert-resolve-all',
+      path: '/api/alert/history/resolve-all',
+      matchType: 'exact',
+      methods: ['POST'],
+      handler: createAlertResolveAllHandler(config),
+      priority: 101,
     },
     {
       name: 'alert-config',

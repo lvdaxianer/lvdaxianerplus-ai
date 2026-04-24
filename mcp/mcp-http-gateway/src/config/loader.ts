@@ -368,6 +368,22 @@ export function getCurrentConfig(): Config | null {
 }
 
 /**
+ * Get all tool names from current config
+ *
+ * @returns Array of tool names
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function getToolNames(): string[] {
+  // 条件注释：获取当前配置中的所有工具名称
+  if (!currentConfig || !currentConfig.tools) {
+    return [];
+  }
+  return Object.keys(currentConfig.tools);
+}
+
+/**
  * Get current config file path
  *
  * @returns Current config file path or null

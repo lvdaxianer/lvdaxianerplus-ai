@@ -4,12 +4,46 @@
     "type": "bearer",
     "default": "default-token-key"
   },
-  "proxy": {
-    "url": "",
-    "auth": {
-      "username": "",
-      "password": ""
+  "tools": {
+    "addAge": {
+      "description": "添加用户年龄",
+      "method": "POST",
+      "path": "/api/users/{userId}/age",
+      "body": {
+        "age": "number"
+      }
+    },
+    "getUser": {
+      "description": "根据ID获取用户信息",
+      "method": "GET",
+      "path": "/api/users/{userId}"
+    },
+    "queryUser": {
+      "description": "根据用户名查询用户",
+      "method": "GET",
+      "path": "/api/users",
+      "queryParams": {
+        "name": "string"
+      }
     }
+  },
+  "sqlite": {
+    "enabled": true,
+    "dbPath": "./data/test-final-toast-check1.db",
+    "maxDays": 30,
+    "batchSize": 100,
+    "syncInterval": 60000
+  },
+  "circuitBreaker": {
+    "enabled": true,
+    "failureThreshold": 5,
+    "successThreshold": 2,
+    "halfOpenTime": 30000
+  },
+  "cache": {
+    "enabled": true,
+    "ttl": 90000,
+    "maxSize": 1000
   },
   "timeout": {
     "connect": 5000,
@@ -28,17 +62,6 @@
       503,
       504
     ]
-  },
-  "circuitBreaker": {
-    "enabled": false,
-    "failureThreshold": 5,
-    "successThreshold": 2,
-    "halfOpenTime": 30000
-  },
-  "cache": {
-    "enabled": false,
-    "ttl": 60000,
-    "maxSize": 1000
   },
   "logging": {
     "level": "info",
@@ -73,72 +96,6 @@
     "ssePort": 11113,
     "httpPort": 11112
   },
-  "tokens": {
-    "A": "***MASKED***",
-    "B": "***MASKED***"
-  },
-  "tools": {
-    "addAge": {
-      "description": "添加用户年龄",
-      "method": "POST",
-      "path": "/user/age",
-      "token": "A",
-      "headers": {
-        "Content-Type": "application/json"
-      },
-      "body": {
-        "userId": {
-          "description": "用户ID",
-          "type": "string",
-          "required": true
-        },
-        "age": {
-          "description": "年龄（0-150）",
-          "type": "number",
-          "required": true
-        }
-      }
-    },
-    "getUser": {
-      "description": "根据ID获取用户信息",
-      "method": "GET",
-      "path": "/user/{userId}",
-      "token": "A",
-      "queryParams": {
-        "includeDetail": {
-          "description": "是否包含详细信息",
-          "type": "boolean",
-          "required": false,
-          "default": false
-        }
-      }
-    },
-    "queryUser": {
-      "description": "根据用户名查询用户",
-      "method": "GET",
-      "path": "/user",
-      "token": "B",
-      "queryParams": {
-        "name": {
-          "description": "用户名",
-          "type": "string",
-          "required": true
-        },
-        "city": {
-          "description": "所在城市",
-          "type": "string",
-          "required": false
-        }
-      }
-    }
-  },
-  "sqlite": {
-    "enabled": true,
-    "dbPath": "./data/logs.db",
-    "maxDays": 30,
-    "batchSize": 100,
-    "syncInterval": 60000
-  },
   "compression": {
     "enabled": false,
     "threshold": 1024,
@@ -161,9 +118,54 @@
     "schedule": "0 * * * *"
   },
   "alert": {
-    "enabled": true,
+    "enabled": false,
     "logDir": "./logs",
-    "errorRateThreshold": 10
+    "channels": [],
+    "rules": [
+      {
+        "type": "circuitBreaker",
+        "enabled": true,
+        "cooldown": 60000,
+        "severity": "critical"
+      },
+      {
+        "type": "rateLimit",
+        "enabled": true,
+        "threshold": 100,
+        "cooldown": 30000,
+        "severity": "warning"
+      },
+      {
+        "type": "concurrency",
+        "enabled": true,
+        "threshold": 50,
+        "cooldown": 30000,
+        "severity": "warning"
+      },
+      {
+        "type": "errorRate",
+        "enabled": true,
+        "threshold": 10,
+        "cooldown": 60000,
+        "severity": "critical"
+      },
+      {
+        "type": "timeout",
+        "enabled": true,
+        "threshold": 5,
+        "cooldown": 30000,
+        "severity": "warning"
+      }
+    ],
+    "templates": {
+      "circuitBreaker": "🔴 熔断器告警：{tool} 状态变更 {state}，连续失败 {failures} 次",
+      "rateLimit": "⚠️ 限流告警：{tool} 请求被拒绝，剩余令牌 {remaining}",
+      "concurrency": "⚠️ 并发告警：活跃请求 {active}/{max}，队列长度 {queue}",
+      "errorRate": "🔴 错误率告警：{tool} 错误率 {rate}%，超过阈值 {threshold}%",
+      "timeout": "⚠️ 超时告警：{tool} 请求超时，耗时 {duration}ms"
+    },
+    "historyRetention": 30,
+    "maxAlertsPerHour": 10
   },
   "audit": {
     "enabled": true,

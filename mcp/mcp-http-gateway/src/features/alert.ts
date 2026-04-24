@@ -46,6 +46,7 @@ export interface AlertRecord {
   timestamp: string;
   channel: string;
   status: 'sent' | 'failed' | 'skipped';
+  resolved_at?: string;
 }
 
 /**
@@ -119,7 +120,8 @@ function createAlertTable(): void {
       details TEXT,
       timestamp TEXT NOT NULL,
       channel TEXT NOT NULL,
-      status TEXT NOT NULL
+      status TEXT NOT NULL,
+      resolved_at TEXT
     )
   `);
 
@@ -128,6 +130,7 @@ function createAlertTable(): void {
     CREATE INDEX IF NOT EXISTS idx_alert_timestamp ON ${ALERT_HISTORY_TABLE}(timestamp);
     CREATE INDEX IF NOT EXISTS idx_alert_type ON ${ALERT_HISTORY_TABLE}(type);
     CREATE INDEX IF NOT EXISTS idx_alert_severity ON ${ALERT_HISTORY_TABLE}(severity);
+    CREATE INDEX IF NOT EXISTS idx_alert_resolved ON ${ALERT_HISTORY_TABLE}(resolved_at);
   `);
 
   logger.info('[告警] Alert history table created');
@@ -806,5 +809,70 @@ export function cleanAlertHistory(maxDays: number): void {
     logger.info('[告警] Cleaned old alert history', { cutoffDate, maxDays });
   } catch (error) {
     logger.error('[告警] Failed to clean alert history', { error });
+  }
+}
+
+/**
+ * 解决单个告警
+ *
+ * @param id - 告警 ID
+ * @returns 是否成功解决
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function resolveAlert(id: string): boolean {
+  const db = getDatabase();
+  if (!db) {
+    logger.warn('[告警] Database not connected, cannot resolve alert');
+    return false;
+  }
+
+  try {
+    // 条件注释：更新告警的解决时间
+    const resolvedAt = new Date().toISOString();
+    const updateStmt = db.prepare(`UPDATE ${ALERT_HISTORY_TABLE} SET resolved_at = ? WHERE id = ?`);
+    const result = updateStmt.run(resolvedAt, id);
+
+    // 条件注释：检查是否成功更新
+    if (result.changes > 0) {
+      logger.info('[告警] Alert resolved', { id, resolvedAt });
+      return true;
+    } else {
+      logger.warn('[告警] Alert not found', { id });
+      return false;
+    }
+  } catch (error) {
+    logger.error('[告警] Failed to resolve alert', { id, error });
+    return false;
+  }
+}
+
+/**
+ * 批量解决所有未解决的告警
+ *
+ * @returns 解决的告警数量
+ *
+ * @author lvdaxianerplus
+ * @date 2026-04-24
+ */
+export function resolveAllAlerts(): number {
+  const db = getDatabase();
+  if (!db) {
+    logger.warn('[告警] Database not connected, cannot resolve alerts');
+    return 0;
+  }
+
+  try {
+    // 条件注释：更新所有未解决的告警
+    const resolvedAt = new Date().toISOString();
+    const updateStmt = db.prepare(`UPDATE ${ALERT_HISTORY_TABLE} SET resolved_at = ? WHERE resolved_at IS NULL`);
+    const result = updateStmt.run(resolvedAt);
+
+    logger.info('[告警] All alerts resolved', { count: result.changes, resolvedAt });
+    return result.changes;
+  } catch (error) {
+    logger.error('[告警] Failed to resolve all alerts', { error });
+    return 0;
   }
 }

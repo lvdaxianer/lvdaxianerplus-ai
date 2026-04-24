@@ -207,6 +207,7 @@ export function getDashboardCss(): string {
     }
     .toast-success { background: #DCFCE7; color: #166534; }
     .toast-error { background: #FEE2E2; color: #991B1B; }
+    .toast-warning { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
     .toast-info { background: #DBEAFE; color: #1D4ED8; }
     @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 

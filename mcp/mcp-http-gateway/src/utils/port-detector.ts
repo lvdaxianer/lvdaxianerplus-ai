@@ -164,6 +164,13 @@ export function handlePortConflict(
 
   logger.warn('[端口检测] 端口被占用', { port, pid: inUse.pid, command: inUse.command });
 
+  // 条件注释：检查是否是当前进程自己占用端口
+  // 如果是当前进程，不应该杀死自己
+  if (inUse.pid === process.pid) {
+    logger.info('[端口检测] 端口被当前进程占用，直接使用', { port, pid: inUse.pid });
+    return port;
+  }
+
   // 条件注释：如果是同类进程且允许自动杀死，则杀死旧进程
   if (autoKillSameType && isSameTypeProcess(inUse.command)) {
     logger.info('[端口检测] 检测到同类进程，尝试杀死旧进程', { pid: inUse.pid });

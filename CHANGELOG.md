@@ -8,24 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- 完善熔断器功能与 SSE/Dashboard 改进 (2fc2d2e)
+- 发布 v1.0.5 版本 (db09628)
 - 更新 Dashboard 端口说明，区分不同启动模式 (85590ba)
 
-- 修复 SSE 模式 Dashboard 不工作的问题 (3b24747)
-
 ### Fixed
+- 修复 SSE 模式 Dashboard 不工作的问题 (3b24747)
 - 修复 Dashboard 模板路径和构建脚本 (a149602)
 
+### Docs
 - 同步 v1.0.3 发布变更记录 (deff5f1)
-
-### Changed
-- 发布 v1.0.3 稳定版 (02d9448)
-
-- 更新变更日志 (c7bc08e)
-
-### Changed
-- 同步 Dashboard 文档变更记录 (7e4b831)
-
-- 添加 Dashboard 使用说明和端口确认方法 (df51c47)
 
 ### Changed
 - 同步端口冲突处理变更记录 (465587e)
