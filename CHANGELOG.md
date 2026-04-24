@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- 发布 v1.0.6 稳定版 (d079b67)
 
 ### Changed
 - 修复 Dashboard 无法访问和 Mock 调用日志问题 (a8f596d)
