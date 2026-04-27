@@ -231,9 +231,82 @@ description: Use when performing code review, code review after changes, code fo
 - SQL 使用参数化查询
 - XSS 过滤和清理
 
-## 6. 异常处理规范
+## 6. 异常处理规范（扩展）
 
-### 6.1. 异常类型选择
+### 6.1. OAuth2 认证登录异常日志规范（强制）
+
+> **适用场景**：OAuth2、JWT、SSO 等认证登录流程
+
+**强制要求**：认证登录流程中，所有异常情况及可能导致退出认证的 if 分支**必须打印 WARN 日志**，不得遗漏。
+
+**必须记录 WARN 日志的场景**：
+
+| 场景 | 日志级别 | 示例 |
+|------|----------|------|
+| Token 过期/无效 | WARN | `[OAuth2认证] Token无效或已过期, tokenId={}` |
+| 签名验证失败 | WARN | `[OAuth2认证] Token签名验证失败, error={}` |
+| 认证信息缺失 | WARN | `[OAuth2认证] 认证信息缺失, missingField={}` |
+| 权限不足/拒绝访问 | WARN | `[OAuth2认证] 权限不足, userId={}, requiredRole={}` |
+| 认证服务不可用 | WARN | `[OAuth2认证] 认证服务调用失败, error={}` |
+| Token 被吊销 | WARN | `[OAuth2认证] Token已被吊销, tokenId={}` |
+| 第三方认证失败 | WARN | `[OAuth2认证] 第三方认证失败, provider={}, error={}` |
+| 会话失效/过期 | WARN | `[OAuth2认证] 会话已失效或过期, sessionId={}` |
+
+**示例代码**：
+
+```java
+// OAuth2 认证流程中的 WARN 日志示例
+public class OAuth2AuthenticationHandler {
+
+    public AuthenticationResult authenticate(String token) {
+        // 场景1: Token 为空
+        if (token == null || token.isEmpty()) {
+            log.warn("[OAuth2认证] Token为空或缺失, requestIp={}", requestIp);
+            return AuthenticationResult.fail("Token不能为空");
+        }
+
+        // 场景2: Token 格式错误
+        if (!isValidTokenFormat(token)) {
+            log.warn("[OAuth2认证] Token格式无效, token={}", maskToken(token));
+            return AuthenticationResult.fail("Token格式错误");
+        }
+
+        try {
+            // 认证逻辑
+            Claims claims = jwtParser.parseClaimsJws(token).getBody();
+            // ...
+        } catch (ExpiredJwtException e) {
+            log.warn("[OAuth2认证] Token已过期, expiredAt={}", e.getClaims().getExpiration());
+            return AuthenticationResult.fail("Token已过期");
+        } catch (JwtException e) {
+            log.warn("[OAuth2认证] Token解析失败, error={}", e.getMessage());
+            return AuthenticationResult.fail("Token无效");
+        }
+
+        // 场景3: 用户被禁用
+        if (user.isDisabled()) {
+            log.warn("[OAuth2认证] 用户已被禁用, userId={}", user.getId());
+            return AuthenticationResult.fail("用户已被禁用");
+        }
+
+        // 场景4: 权限不足
+        if (!hasRequiredRole(user, requiredRole)) {
+            log.warn("[OAuth2认证] 权限不足, userId={}, requiredRole={}", user.getId(), requiredRole);
+            return AuthenticationResult.fail("权限不足");
+        }
+
+        return AuthenticationResult.success(user);
+    }
+}
+```
+
+**核心原则**：
+- 认证登录流程中的**任何异常分支**都必须记录 WARN 日志
+- 日志需包含足够的上下文信息（tokenId、userId、error、过期时间等）
+- 不得在认证流程中静默吞掉异常或只记录 DEBUG 级别
+- WARN 日志帮助快速定位认证失败原因，降低安全事件排查成本
+
+### 6.2. 异常类型选择
 - **RuntimeException / Error**：程序员错误（逻辑 Bug）
 - **CheckedException / IOError**：外部依赖失败（IO、网络）
 - **自定义异常**：业务错误
@@ -247,7 +320,160 @@ description: Use when performing code review, code review after changes, code fo
 
 ## 7. 日志规范
 
-### 7.1. 日志级别
+### 7.1. 服务间调用日志规范（强制）
+
+> **适用场景**：HTTP/REST、gRPC、GraphQL 等服务间调用
+
+**强制要求**：调用其他服务时，必须将**请求参数、Header、响应状态码和响应体**完整记录到日志中。
+
+**日志记录时机与内容**：
+
+| 调用阶段 | 日志级别 | 必须记录的内容 |
+|----------|----------|----------------|
+| 发起请求 | DEBUG | 请求 URL、HTTP 方法、Header（脱敏）、请求参数/请求体 |
+| 收到响应 | DEBUG | 响应状态码、响应耗时、响应体（脱敏） |
+| 调用失败 | WARN | 错误信息、异常堆栈、请求上下文 |
+
+**日志格式规范**：
+
+```
+[服务间调用] 阶段|服务名称|接口|状态码|耗时ms
+[服务间调用] 阶段|服务名称|接口|状态码|耗时ms|详情(JSON格式)
+```
+
+**示例代码**：
+
+```java
+// HTTP 服务调用日志示例
+public class HttpServiceClient {
+
+    private static final Logger log = LoggerFactory.getLogger(HttpServiceClient.class);
+
+    public UserResponse getUser(Long userId) {
+        // 构建请求
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.example.com/users/" + userId))
+            .header("Authorization", "Bearer " + maskToken(token))
+            .header("Content-Type", "application/json")
+            .GET()
+            .build();
+
+        // 记录请求日志 (DEBUG)
+        log.debug("[服务间调用] REQUEST|用户服务|/users/{}|GET|X-Request-Id={}, Authorization=Bearer ***",
+            userId, request.headers().firstValue("X-Request-Id").orElse("N/A"));
+
+        long startTime = System.currentTimeMillis();
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            long duration = System.currentTimeMillis() - startTime;
+
+            // 记录响应日志 (DEBUG)
+            log.debug("[服务间调用] RESPONSE|用户服务|/users/{}|{}|{}ms|X-Request-Id={}",
+                userId, response.statusCode(), duration,
+                response.headers().firstValue("X-Request-Id").orElse("N/A"));
+
+            // 脱敏处理后记录响应体
+            if (log.isTraceEnabled()) {
+                log.trace("[服务间调用] RESPONSE_BODY|用户服务|/users/{}|{}",
+                    userId, maskSensitiveData(response.body()));
+            }
+
+            if (response.statusCode() >= 400) {
+                log.warn("[服务间调用] ERROR|用户服务|/users/{}|{}|{}ms|错误: {}",
+                    userId, response.statusCode(), duration, response.body());
+            }
+
+            return parseResponse(response);
+        } catch (HttpServiceException e) {
+            long duration = System.currentTimeMillis() - startTime;
+            log.warn("[服务间调用] EXCEPTION|用户服务|/users/{}|{}|{}ms|服务调用失败: {}",
+                userId, "TIMEOUT", duration, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * 脱敏处理 - 隐藏敏感信息
+     */
+    private String maskToken(String token) {
+        if (token == null || token.length() <= 8) {
+            return "***";
+        }
+        return token.substring(0, 4) + "***" + token.substring(token.length() - 4);
+    }
+
+    /**
+     * 脱敏处理 - 隐藏响应体中的敏感字段
+     */
+    private String maskSensitiveData(String body) {
+        if (body == null) {
+            return "null";
+        }
+        return body
+            .replaceAll("\"password\"\\s*:\\s*\"[^\"]*\"", "\"password\":\"***\"")
+            .replaceAll("\"token\"\\s*:\\s*\"[^\"]*\"", "\"token\":\"***\"")
+            .replaceAll("\"secret\"\\s*:\\s*\"[^\"]*\"", "\"secret\":\"***\"")
+            .replaceAll("\"creditCard\"\\s*:\\s*\"[^\"]*\"", "\"creditCard\":\"***\"");
+    }
+}
+```
+
+```typescript
+// TypeScript 服务调用日志示例
+export class ApiService {
+    private readonly logger: Logger;
+
+    async getUser(userId: number): Promise<UserResponse> {
+        const requestId = generateRequestId();
+        const headers = {
+            'Authorization': `Bearer ${maskToken(this.token)}`,
+            'Content-Type': 'application/json',
+            'X-Request-Id': requestId,
+        };
+
+        // 记录请求日志 (DEBUG)
+        this.logger.debug(`[服务间调用] REQUEST|用户服务|/users/${userId}|GET|X-Request-Id=${requestId}`);
+
+        const startTime = Date.now();
+        try {
+            const response = await fetch(`https://api.example.com/users/${userId}`, {
+                method: 'GET',
+                headers,
+            });
+
+            const duration = Date.now() - startTime;
+            const responseBody = await response.text();
+
+            // 记录响应日志 (DEBUG)
+            this.logger.debug(`[服务间调用] RESPONSE|用户服务|/users/${userId}|${response.status}|${duration}ms`);
+
+            if (this.logger.isTraceEnabled()) {
+                this.logger.trace(`[服务间调用] RESPONSE_BODY|用户服务|/users/${userId}|${maskSensitiveData(responseBody)}`);
+            }
+
+            if (!response.ok) {
+                this.logger.warn(`[服务间调用] ERROR|用户服务|/users/${userId}|${response.status}|${duration}ms|错误: ${responseBody}`);
+            }
+
+            return JSON.parse(responseBody);
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            this.logger.warn(`[服务间调用] EXCEPTION|用户服务|/users/${userId}|ERROR|${duration}ms|服务调用失败: ${error.message}`);
+            throw error;
+        }
+    }
+}
+```
+
+**核心原则**：
+- 请求和响应日志必须在 **DEBUG** 级别记录
+- 错误响应必须在 **WARN** 级别记录
+- 敏感信息（Token、Password、CreditCard 等）必须脱敏后记录
+- Header 中的 Authorization 字段必须脱敏或省略
+- 日志需包含 X-Request-Id 以便链路追踪
+- 响应体记录应使用 TRACE 级别，避免影响生产环境日志量
+
+### 7.2. 日志级别
 | 级别 | 使用场景 |
 |------|----------|
 | ERROR | 需要立即处理系统级错误 |
@@ -355,6 +581,19 @@ timestamp [thread-name] level class-name:line-number - message
 - [✅/❌/不适用] **特定异常**：捕获特定异常类型，禁止捕获 `Throwable`/`Exception`
 - [✅/❌/不适用] **异常链**：抛出新异常时必须包含原始异常
 - [✅/❌/不适用] **日志记录**：捕获异常后至少记录日志，不允许静默吞掉异常
+
+### 13.6.1. OAuth2 认证登录日志（强制）
+
+- [✅/❌/不适用] **认证异常 WARN 日志**：OAuth2/JWT 认证流程中，Token 过期、无效、签名失败、权限不足等异常分支必须打印 WARN 日志
+- [✅/❌/不适用] **认证退出分支日志**：所有可能导致退出认证的 if 分支都必须有完整的 WARN 日志记录
+- [✅/❌/不适用] **日志上下文完整**：认证相关日志必须包含足够的上下文信息（tokenId、userId、error、过期时间等）
+
+### 13.6.2. 服务间调用日志（强制）
+
+- [✅/❌/不适用] **请求参数日志**：调用其他服务时，DEBUG 级别记录请求 URL、方法、Header、参数/请求体
+- [✅/❌/不适用] **响应日志**：DEBUG 级别记录响应状态码、耗时、响应体
+- [✅/❌/不适用] **错误日志**：调用失败时 WARN 级别记录错误信息、异常堆栈、请求上下文
+- [✅/❌/不适用] **敏感信息脱敏**：日志中的 Token、Password、CreditCard 等敏感信息必须脱敏
 
 ### 13.7. 数据库规范（强制）
 
