@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- 更新 README 添加 Claude Code 使用说明 (19f7351)
+
+### Changed
+- 添加未使用导入与变量清理规范 (3e05290)
+
+- 添加 OAuth2 认证和服务间调用日志规范 (df7bdc8)
+
+### Changed
+- 最终同步 (b1f93e9)
+
 - 自动同步提交记录 (883af64)
 
 ### Changed

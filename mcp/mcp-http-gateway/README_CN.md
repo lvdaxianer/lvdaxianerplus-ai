@@ -130,17 +130,11 @@ CLI 参数 > SQLite 数据库 > 配置文件 > 默认值
 
 ## Claude Code 使用
 
-Claude Code 可以通过 npx 自动安装并使用：
+Claude Code 可以通过 npx 自动安装并使用。
 
-### 1. 全局安装（推荐）
+### 1. 项目级配置（推荐）
 
-```bash
-npm install -g @lvdaxianer/mcp-http-gateway
-```
-
-### 2. Claude Code MCP 配置
-
-在 Claude Code 设置中添加 MCP Server：
+在项目根目录创建 `.mcp.json` 文件：
 
 **方式一：STDIO 模式（Claude Code 默认，自动管理进程）**
 
@@ -196,6 +190,12 @@ npx -y @lvdaxianer/mcp-http-gateway --transport=sse --config=./tools.json
 启动服务：
 ```bash
 npx -y @lvdaxianer/mcp-http-gateway --transport=dual --config=./tools.json
+```
+
+### 2. 全局安装（备选）
+
+```bash
+npm install -g @lvdaxianer/mcp-http-gateway
 ```
 
 ---

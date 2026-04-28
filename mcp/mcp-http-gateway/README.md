@@ -130,17 +130,11 @@ Request Failed → Cache Fallback (ignore TTL) → Mock Fallback → Return Erro
 
 ## Using with Claude Code
 
-Claude Code can automatically install and use via npx:
+Claude Code can automatically install and use via npx.
 
-### 1. Global Install (Recommended)
+### 1. Project-level Configuration (Recommended)
 
-```bash
-npm install -g @lvdaxianer/mcp-http-gateway
-```
-
-### 2. Claude Code MCP Configuration
-
-Add MCP Server in Claude Code settings:
+Create a `.mcp.json` file in your project root:
 
 **Option 1: STDIO Mode (Claude Code Default, Auto-managed Process)**
 
@@ -196,6 +190,12 @@ Start the service manually, supports both STDIO and SSE connections.
 Start the service:
 ```bash
 npx -y @lvdaxianer/mcp-http-gateway --transport=dual --config=./tools.json
+```
+
+### 2. Global Install (Alternative)
+
+```bash
+npm install -g @lvdaxianer/mcp-http-gateway
 ```
 
 ---
